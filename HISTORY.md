@@ -284,3 +284,61 @@ arquivos.
   caminhos editáveis.
 - Nenhuma mudança de comportamento.
 - `bash -n` e um teste de `prepare-job.sh` com o placeholder `ARRAY` passaram.
+
+## 2026-11-10 — Compatibilidade do prepare-job com rótulo inicial
+
+- `prepare-job.sh` voltou a aceitar o uso antigo `./prepare-job.sh <label> *.inp`:
+  se o primeiro argumento não for um arquivo `.inp` existente e houver mais
+  inputs, ele é ignorado com aviso, pois o job name é fixo em `dlpno`.
+- A mensagem de input não encontrado agora orienta a usar apenas arquivos
+  `.inp` e informa que o job name é fixo.
+- Testado com `./prepare-job.sh test4 *.inp`; o CSV e `--array=1-N` foram
+  gerados corretamente.
+- `jobfile/README.md` foi atualizado; `bash -n` passou.
+
+## 2026-11-10 — Correção: job name é opcional, não fixo
+
+- Corrigida a interpretação: `dlpno` é o job name padrão, não um valor fixo.
+- `prepare-job.sh` agora aceita `[job-name] [input ...]`:
+  - primeiro argumento sem `.inp` é o job name;
+  - sem job name explícito, usa `dlpno`;
+  - sem inputs após o job name, usa `<job-name>.inp`.
+- O logfile acompanha o job name: `<job-name>_%J.stdout`.
+- Corrigido o caso `./prepare-job.sh test4 *.inp`, que agora configura o job
+  `test4` em vez de tratar `test4` como input.
+- `AGENTS.md` e `jobfile/README.md` foram atualizados.
+- Testes com job name explícito, padrão e input derivado; `bash -n` passou.
+
+## 2026-11-10 — prepare-job simplificado com descoberta automática
+
+- `prepare-job.sh` agora recebe somente `<job-name>`.
+- O script descobre automaticamente todos os `*.inp` do diretório atual e os
+  ordena naturalmente com `sort -V` (`input2` antes de `input10`).
+- O job name é obrigatório; o logfile é `<job-name>_%J.stdout`.
+- O CSV, `localDir`, `--array=1-N` e o nome do job são atualizados em uma única
+  execução.
+- `AGENTS.md`, `jobfile/README.md` e o comentário do jobfile foram atualizados.
+- Testado com ordem natural e com diretório sem `.inp`; `bash -n` passou.
+
+## 2026-11-10 — Log do Slurm renomeado por input
+
+- Revertida a alteração dos nomes de stdout/stderr do ORCA; voltaram a
+  `<basename>.out` e `stderr.log`.
+- `#SBATCH --output` passou a usar o nome temporário `slurm-%A_%a.stdout`.
+- Após selecionar o input, o script renomeia esse arquivo para
+  `<input>_<SLURM_JOB_ID>.stdout`.
+- O `prepare-job.sh` mantém `#SBATCH --output=slurm-%A_%a.stdout`; o nome final
+  depende do input e é resolvido em tempo de execução.
+- `AGENTS.md` e `jobfile/README.md` foram atualizados.
+
+## 2026-11-10 — Kit de teste de falha por OOM
+
+- Criado `oom-test/` com um `fake-singularity` que aloca memória para
+  disparar o OOM killer do cgroup do Slurm.
+- `setup-oom-test.sh` monta uma cópia descartável em `oom-test/work/`, ajusta
+  `ctPath` para um SIF vazio e executa o `prepare-job.sh`.
+- `submit-oom-test.sh` submete com `--mem` baixo e exporta um `PATH` que
+  resolve o `singularity` falso.
+- O teste usa `water1.inp` e valida o fluxo de falha, o stdout renomeado e o
+  archive `_failed`, quando o shell sobrevive ao OOM.
+- `AGENTS.md` foi atualizado com a referência ao kit; `bash -n` passou.

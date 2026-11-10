@@ -5,31 +5,26 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 JOBFILE="$SCRIPT_DIR/slurm-dlpno.sh"
 CSV="$SCRIPT_DIR/slurm-dlpno.csv"
-JOB_NAME="dlpno"
-OUTPUT_PATTERN="${JOB_NAME}_%J.stdout"
+
 local_dir="$PWD"
 local_dir_q="$(printf '%q' "$local_dir")"
 local_dir_escaped="$(printf '%s' "$local_dir_q" | sed 's/[\\&|]/\\&/g')"
 
 usage() {
     cat <<EOF
-Uso: $(basename "$0") <input> [input ...]
+Uso: $(basename "$0") <job-name>
 
-Preenche $CSV e atualiza $JOBFILE:
+Lê automaticamente todos os arquivos *.inp do diretório atual,
+em ordem natural, e atualiza $JOBFILE e $CSV.
+
+Atualiza:
   - localDir com o diretório atual
-  - #SBATCH --job-name (fixo: ${JOB_NAME})
-  - #SBATCH --output (fixo: ${OUTPUT_PATTERN})
-  - #SBATCH --array
+  - #SBATCH --job-name <job-name>
+  - #SBATCH --output=slurm-%A_%a.stdout (renomeado para <input>_<jobid>.stdout)
+  - #SBATCH --array=1-<quantidade de .inp>
 
-O localDir do script será atualizado para o diretório atual.
-Execute este script a partir do diretório que contém slurm-dlpno.sh e
-slurm-dlpno.csv.
-
-Os inputs devem existir no diretório deste script ou no diretório pai.
-
-Exemplos:
-  $(basename "$0") int-1-HH
-  $(basename "$0") water1 water2
+Exemplo:
+  $(basename "$0") test4
 EOF
 }
 
@@ -53,24 +48,34 @@ case "${1:-}" in
         ;;
 esac
 
-inputs=("$@")
+[[ $# -eq 1 ]] || {
+    echo "ERRO: informe exatamente um job name." >&2
+    usage >&2
+    exit 1
+}
 
-normalized_inputs=()
-for raw_input in "${inputs[@]}"; do
-    [[ "$raw_input" != */* ]] || die "o input deve ser um nome de arquivo, sem diretório: $raw_input"
+job_name="$1"
+[[ "$job_name" =~ ^[A-Za-z0-9._-]+$ ]] || die "nome do job inválido: $job_name"
+output_pattern="slurm-%A_%a.stdout"
 
-    input="${raw_input%.inp}.inp"
-    [[ "$input" =~ ^[A-Za-z0-9._-]+$ ]] || die "nome de input inválido: $input"
-    if [[ -f "$SCRIPT_DIR/$input" ]]; then
-        :
-    elif [[ -f "$SCRIPT_DIR/../$input" ]]; then
-        :
-    else
-        die "input não encontrado: $SCRIPT_DIR/$input ou $SCRIPT_DIR/../$input"
-    fi
+# Collect *.inp files from the current directory.
+shopt -s nullglob
+input_files=("$PWD"/*.inp)
+shopt -u nullglob
 
-    normalized_inputs+=("$input")
+inputs=()
+for input_path in "${input_files[@]}"; do
+    [[ -f "$input_path" ]] || continue
+    input_name="${input_path##*/}"
+    [[ "$input_name" =~ ^[A-Za-z0-9._-]+$ ]] || die "nome de input inválido: $input_name"
+    inputs+=("$input_name")
 done
+
+[[ "${#inputs[@]}" -gt 0 ]] || die "nenhum arquivo .inp encontrado em $PWD"
+
+# Sort in natural order (file2 before file10).
+mapfile -t sorted_inputs < <(printf '%s\n' "${inputs[@]}" | LC_ALL=C sort -V)
+inputs=("${sorted_inputs[@]}")
 
 [[ -f "$JOBFILE" ]] || die "script não encontrado: $JOBFILE"
 [[ -f "$CSV" ]] || die "CSV não encontrado: $CSV"
@@ -82,8 +87,8 @@ grep -q '^localDir=' "$JOBFILE" || die "variável localDir não encontrada em $J
 tmp_csv="$(mktemp "${CSV}.XXXXXX")"
 trap 'rm -f "$tmp_csv"' EXIT
 
-for i in "${!normalized_inputs[@]}"; do
-    printf '%d,%s\n' "$((i + 1))" "${normalized_inputs[$i]}" >> "$tmp_csv"
+for i in "${!inputs[@]}"; do
+    printf '%d,%s\n' "$((i + 1))" "${inputs[$i]}" >> "$tmp_csv"
 done
 
 if [[ -e "$CSV" ]]; then
@@ -92,19 +97,19 @@ fi
 mv "$tmp_csv" "$CSV"
 trap - EXIT
 
-array_end="${#normalized_inputs[@]}"
+array_end="${#inputs[@]}"
 
 sed -i -E \
     -e "s|^localDir=.*|localDir=${local_dir_escaped}|" \
-    -e "s|^#SBATCH --job-name[[:space:]].*|#SBATCH --job-name ${JOB_NAME}|" \
-    -e "s|^#SBATCH --output=.*|#SBATCH --output=${OUTPUT_PATTERN}|" \
+    -e "s|^#SBATCH --job-name[[:space:]].*|#SBATCH --job-name ${job_name}|" \
+    -e "s|^#SBATCH --output=.*|#SBATCH --output=${output_pattern}|" \
     -e "s|^#SBATCH --array=.*|#SBATCH --array=1-${array_end}|" \
     "$JOBFILE"
 
 echo "Atualizado: $JOBFILE"
 echo "  localDir ${local_dir}"
-echo "  --job-name ${JOB_NAME}"
-echo "  --output=${OUTPUT_PATTERN}"
+echo "  --job-name ${job_name}"
+echo "  --output=${output_pattern}"
 echo "  --array=1-${array_end}"
 echo "Atualizado: $CSV"
 sed 's/^/  /' "$CSV"

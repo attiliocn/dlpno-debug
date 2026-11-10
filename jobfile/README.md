@@ -291,7 +291,7 @@ seguintes alterações:
 | Item | Original | Cópia de trabalho |
 |---|---|---|
 | Partition | ausente | informada no `sbatch` (`--partition=<partition>`) |
-| Job name / logfile | `6631` / `cjobs_log_%x_%J.stdout` | `dlpno` / `dlpno_%J.stdout` |
+| Job name / logfile | `6631` / `cjobs_log_%x_%J.stdout` | `prepare-job.sh <job-name>` define o job name; log final `<input>_<JOBID>.stdout` |
 | Array | `1-1` | placeholder `ARRAY`, substituído por `1-N` no `prepare-job.sh` |
 | Sincronização do contêiner | `rclone` + lock + GID | removida; container fixo em `ctPath` |
 | Variáveis não usadas | `allocCPU`, `allocRAM`, `numjobs` | removidas; fluxo procedural sem laço |
@@ -347,6 +347,8 @@ tar cvzf "$archive" -C "$exeDir" "$basename/"
   job, diretórios, cópia de arquivos, input selecionado, PID e status do ORCA,
   marcador de terminação, arquivamento e limpeza. Esses echos não vão para o
   `<basename>.out` do ORCA.
+- O log do Slurm começa como `slurm-%A_%a.stdout` e é renomeado para
+  `<input>_<JOBID>.stdout` após a seleção do input.
 - No arquivo versionado, `localDir` fica como `__LOCAL_DIR__`; o
   `prepare-job.sh` substitui esse placeholder pelo diretório atual.
 - O bloco `PATHS - USER-EDITABLE` no script destaca que o usuário pode alterar
@@ -365,17 +367,16 @@ No HPC, crie uma pasta de trabalho, coloque os inputs nela e mantenha
 Execute a preparação a partir dessa pasta:
 
 ```bash
-./prepare-job.sh <input> [input ...]
+./prepare-job.sh <job-name>
 ```
 
-Exemplos:
+O script lê automaticamente todos os arquivos `.inp` presentes no diretório
+atual, em ordem natural (`input1`, `input2`, `input10`).
+
+Exemplo:
 
 ```bash
-# Um input
-./prepare-job.sh int-1-HH
-
-# Vários inputs; ajusta a array para 1-N
-./prepare-job.sh water1 water2
+./prepare-job.sh test4
 ```
 
 A submissão também é feita a partir dessa mesma pasta, com a partition
@@ -387,13 +388,14 @@ sbatch --partition=<partition> slurm-dlpno.sh
 
 O script:
 
+- descobre todos os `*.inp` do diretório atual e os ordena naturalmente;
 - grava `slurm-dlpno.csv` com uma linha por input;
 - substitui o placeholder `__LOCAL_DIR__` de `localDir` pelo caminho absoluto
   do diretório atual (`$PWD`);
-- mantém `#SBATCH --job-name dlpno` e `#SBATCH --output=dlpno_%J.stdout`;
-- substitui o placeholder `#SBATCH --array=ARRAY` por `1-<número de inputs>`;
-- valida os nomes dos inputs e procura os arquivos no diretório atual ou no
-  diretório pai, se aplicável.
+- define `#SBATCH --job-name <job-name>`;
+- define `#SBATCH --output=slurm-%A_%a.stdout`; durante a execução, o job
+  renomeia esse arquivo para `<input>_<JOBID>.stdout`;
+- substitui o placeholder `#SBATCH --array=ARRAY` por `1-<número de inputs>`.
 
 Os arquivos originais `cjobs_6631.sh` e `cjobs_joblist.csv` não são alterados.
 

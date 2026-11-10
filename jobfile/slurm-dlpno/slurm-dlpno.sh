@@ -5,8 +5,8 @@
 #
 # 1. On the HPC, create a working folder and put the inputs there.
 # 2. Keep this script, the CSV, prepare-job.sh, and inputs in that folder.
-# 3. From that folder, prepare the job:
-#      ./prepare-job.sh <input> [input ...]
+# 3. From that folder, prepare the job (reads *.inp automatically):
+#      ./prepare-job.sh <job-name>
 # 4. Submit from the same folder, choosing the partition at submission:
 #      sbatch --partition=<partition> slurm-dlpno.sh
 # 5. Adjust the container and scratch paths in the PATHS block below if needed.
@@ -15,11 +15,12 @@
 # ============================================================================
 # 1. SLURM DIRECTIVES
 # ============================================================================
-# Job name and log file are fixed for DLPNO runs.
-# Partition is chosen at submission time: sbatch --partition=<partition>.
+# dlpno is the template default; prepare-job.sh sets the job name.
+# Slurm output starts as slurm-%A_%a.stdout; after the input is selected it is
+# renamed to <input>_<jobid>.stdout. Partition is chosen at submission time.
 # ARRAY is a placeholder replaced by prepare-job.sh.
 #SBATCH --job-name dlpno
-#SBATCH --output=dlpno_%J.stdout
+#SBATCH --output=slurm-%A_%a.stdout
 
 # Resource request: one node, four MPI ranks, 80 GB, up to 720 hours.
 #SBATCH --nodes=1
@@ -111,11 +112,14 @@ function get_csv_element() {
 # job_status: ORCA/singularity process exit status.
 # cleanup_done: prevents duplicate cleanup.
 # jobDir/basename: filled during execution and reused by clean_job.
+# slurm_output: temporary Slurm output file, renamed after input selection.
 job_success=0
 job_status=1
 cleanup_done=0
 jobDir=""
 basename=""
+submit_dir="${SLURM_SUBMIT_DIR:-$PWD}"
+slurm_output="$submit_dir/slurm-${SLURM_ARRAY_JOB_ID:-${SLURM_JOB_ID:-unknown}}_${SLURM_ARRAY_TASK_ID:-0}.stdout"
 
 # Run cleanup on normal exit and on termination signals.
 trap clean_job EXIT
@@ -209,6 +213,19 @@ echo LOG: Job basename: "$basename"
 echo LOG: Running at: "$jobDir"
 echo LOG: Hostname: $(hostname)
 echo LOG: Singularity container path: "$ctPath"
+
+# Slurm cannot use the input name in --output, so rename its temporary file.
+job_id="${SLURM_JOB_ID:-unknown}"
+slurm_output_final="$localDir/${basename}_${job_id}.stdout"
+if [[ -f "$slurm_output" ]]; then
+    if mv "$slurm_output" "$slurm_output_final"; then
+        echo "LOG: Slurm output renamed: $slurm_output_final"
+    else
+        echo "LOG: WARNING: could not rename Slurm output: $slurm_output" >&2
+    fi
+else
+    echo "LOG: WARNING: Slurm output not found: $slurm_output" >&2
+fi
 
 # ============================================================================
 # 8. RUN ORCA IN THE CONTAINER

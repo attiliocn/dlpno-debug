@@ -35,14 +35,18 @@ Em outras palavras:
   do original (ver seção de diferenças no `jobfile/README.md`).
 - `jobfile/slurm-dlpno/slurm-dlpno.csv` — CSV de trabalho consumido por
   `slurm-dlpno.sh`.
-- `jobfile/slurm-dlpno/prepare-job.sh` — configura o CSV, o `localDir` e a
-  numeração da `--array`; mantém `--job-name dlpno` e
-  `--output=dlpno_%J.stdout`.
+- `jobfile/slurm-dlpno/prepare-job.sh` — recebe `<job-name>`, descobre os
+  `*.inp` do diretório atual em ordem natural e configura CSV, `localDir`,
+  `--job-name`, `--output=slurm-%A_%a.stdout` e `--array`.
+- O `slurm-dlpno.sh` renomeia o stdout do Slurm para
+  `<input>_<jobid>.stdout` após selecionar o input.
 - `jobfile/slurm-dlpno/water1.inp` e `water2.inp` — inputs de exemplo para um
   lote de teste com duas tasks.
 - `jobfile/README.md` — documentação do fluxo, variáveis, recursos e pontos de
   atenção do script original `cjobs_6631.sh`. A cópia de trabalho está em
   `jobfile/slurm-dlpno/`.
+- `oom-test/` — kit para simular falha por OOM no fluxo do `slurm-dlpno.sh`,
+  com `singularity` falso e limite de memória baixo no Slurm.
 - `jobfile/int-1-HH.inp` — entrada ORCA do cálculo DLPNO em questão.
 - `sample-dlpno/` — dois exemplos de saída ORCA que terminaram normalmente
   (`bis_int_tbpButTrans_3.out` e `ts-exchg-2_f3_17.out`), úteis como referência
@@ -127,8 +131,7 @@ Em outras palavras:
   versionado; o `prepare-job.sh` substitui os placeholders pelos valores
   calculados.
 - No HPC, criar uma pasta de trabalho, colocar nela os inputs e os scripts,
-  executar `./prepare-job.sh <input> [input ...]` a partir dessa pasta e
-  submeter com `sbatch --partition=<partition> slurm-dlpno.sh` no mesmo
-  diretório.
+  executar `./prepare-job.sh <job-name>` a partir dessa pasta e submeter com
+  `sbatch --partition=<partition> slurm-dlpno.sh` no mesmo diretório.
 - Não usar caminho completo do jobfile nos comandos de preparação/submissão;
   operar sempre no diretório atual (`$PWD`), que também será o `localDir`.
