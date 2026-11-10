@@ -328,23 +328,43 @@ $localDir/<inputname>_${SLURM_JOB_ID}_failed.tar.gz
 tar cvzf "$archive" -C "$exeDir" "$basename/"
 ```
 
-- Em falha (`job_success=0`), todos os arquivos `*.tmp` do diretório do job
-  são removidos antes de compactar, inclusive em subdiretórios:
+- Em falha (`job_success=0`), todos os arquivos `*.tmp` e `*.tmp.*` do
+  diretório do job são removidos antes de compactar, inclusive em
+  subdiretórios:
 
 ```bash
-find "$jobDir" -type f -name '*.tmp'
+find "$jobDir" -type f \( -name '*.tmp' -o -name '*.tmp.*' \)
 ```
 
-  Isso cobre `<basename>.tmp`, `<basename>.en.tmp`, `<basename>.SHARKINP.tmp`
-  e afins. Esses arquivos são scratch de integrais/PNO e podem ocupar dezenas
+  Isso cobre `<basename>.tmp`, `<basename>.en.tmp`, `<basename>.SHARKINP.tmp`,
+  as variantes com sufixo (`<basename>.tmp.densities`,
+  `<basename>.tmp.scfrules`), os arquivos de integrais do ORCA 6
+  (`<basename>.bas`, `<basename>.bas0`…`<basename>.basN`), os workspaces
+  `<basename>.PAUX.tmp` e `<basename>.PINP0.tmp` e as densidades
+  `<basename>.densities`. Esses arquivos são scratch de integrais/PNO e podem ocupar dezenas
   de GB; sem o cálculo completo eles não têm utilidade, e o archive `_failed`
   fica com o tamanho dos arquivos de resultado de fato (`<basename>.out`,
   `stderr.log`, `<basename>.gbw`, input e demais arquivos menores). Os
   diretórios que ficarem vazios (`<basename>.tmpdir/`) continuam no archive.
 - Em sucesso o conteúdo do job é arquivado integralmente, sem remoção de
   `*.tmp`.
-- Se o `tar` falhar, o scratch é mantido para inspeção e o script termina com
-  status de erro.
+- O `tar` é executado com `--warning=no-file-changed` e o status é checado
+  explicitamente, pois o GNU tar usa três códigos:
+
+```bash
+tar cvzf "$archive" --warning=no-file-changed -C "$exeDir" "$basename/"
+tar_status=$?
+```
+
+  - `0` = arquivo criado normalmente;
+  - `1` = "some files differ" (um arquivo mudou ou desapareceu durante a
+    leitura), considerado aceitável porque o conteúdo de resultado já foi
+    lido; a opção `--warning=no-file-changed` apenas silencia a mensagem
+    correspondente, **não** altera o código de saída;
+  - `2` ou maior = erro real.
+- Em erro real (`tar_status > 1`) o archive parcial é removido, o scratch é
+  mantido para inspeção e o script termina com status de erro. Assim não fica
+  em `localDir` um `_failed.tar.gz` truncado que parece válido.
 - A cópia de trabalho exige `tar` com suporte a gzip (`gzip`) disponível no
   ambiente.
 - O container do ORCA não é mais sincronizado. Ele deve existir previamente em:

@@ -356,19 +356,49 @@ arquivos.
 
 ## 2026-11-10 — Remove arquivos `*.tmp` do archive de falha
 
-- `clean_job` agora remove todos os arquivos `*.tmp` do diretório do job
-  antes de criar o archive, quando `job_success != 1`.
-- A remoção usa `find "$jobDir" -type f -name '*.tmp'`, portanto alcança
-  subdiretórios e cobre `<basename>.tmp`, `<basename>.en.tmp` e
+- `clean_job` agora remove os arquivos `*.tmp`, `*.tmp.*`, `*.bas*`,
+  `*.PAUX.tmp`, `*.PINP0.tmp` e `*.densities` do diretório do job antes de
+  criar o archive, quando `job_success != 1`.
+- A remoção usa `find` com vários `-name`, portanto
+  alcança subdiretórios e cobre `<basename>.tmp`, `<basename>.en.tmp`,
   `<basename>.SHARKINP.tmp` (nomes confirmados nos exemplos de
-  `sample-dlpno/`).
+  `sample-dlpno/`) e as variantes com sufixo, como
+  `<basename>.tmp.densities` e `<basename>.tmp.scfrules`.
 - O log registra o tamanho total liberado e a lista de arquivos removidos.
 - Justificativa: os `*.tmp` são scratch de integrais/PNO e podem chegar a
   dezenas de GB; sem o cálculo completo eles não servem para nada e tornavam o
   archive `_failed` inútil na prática.
 - Em sucesso o arquivamento continua integral, sem remoção de `*.tmp`.
 - Testado com um `singularity` falso em `/tmp`: falha (`exit 137`, sem marcador)
-  gerou `water1_9101_failed.tar.gz` sem os `*.tmp` (7 MB liberados) e manteve
-  `.out`, `stderr.log`, `.gbw` e o input; sucesso gerou o archive completo.
+  gerou `water1_9201_failed.tar.gz` sem nenhum `*.tmp*` (6 MB liberados) e
+  manteve `.out`, `stderr.log`, `.gbw`, `.densitiesinfo` e o input; sucesso
+  gerou o archive completo, com os `*.tmp*` intactos.
 - `jobfile/slurm-dlpno/slurm-dlpno.sh`, `jobfile/README.md` e a cópia
   `oom-test/fixtures/slurm-dlpno.sh` foram atualizados; `bash -n` passou.
+- Evidência de execução real (`tmp/output/`, jobs 87515/87514): a limpeza
+  rodava com o ORCA ainda vivo e matava o cálculo. O `stderr.log` mostra
+  `FATAL ERROR ... CANNOT OPEN FILE water1.gridx1.tmp` seguido de
+  `Aborted (6)` dentro de `TIntegrationGrid::ReadGrid`, e o archive do
+  `water2` continha um arquivo `.nfs000...` (silly-rename do NFS para
+  arquivos apagados com handle aberto). Por isso foi adicionado o
+  `shutdown_orca`: o container recebe `TERM`, espera até 30 s e depois
+  `KILL`, antes de qualquer remoção ou compactação.
+- O `*.densities` foi incluído na lista por decisão do usuário.
+
+## 2026-11-10 — Aceita status 1 do tar e remove `*.densities` na falha
+
+- `tar` passou a ser chamado com `--warning=no-file-changed` e o código de
+  saída é checado explicitamente: `0` e `1` ("some files differ") são
+  aceitos, `>= 2` é erro real.
+- Em erro real o archive parcial é apagado com `rm -f`, o scratch é mantido e
+  o script termina com status de erro — evitando um `_failed.tar.gz`
+  truncado que parece válido.
+- A opção `--warning=no-file-changed` só silencia a mensagem; não muda o
+  código de saída, por isso o tratamento explícito.
+- `*.densities` incluído na lista de arquivos removidos em falha.
+- Testado com um `tar` falso retornando 0, 1 e 2: arquivos `_failed` criados
+  nos dois primeiros casos, scratch removido; no caso 2 o archive parcial foi
+  removido e o scratch mantido. Também validado com o tar real (GNU tar 1.35)
+  aceitando `--warning=no-file-changed`.
+- `jobfile/slurm-dlpno/slurm-dlpno.sh`, `jobfile/README.md` e
+  `oom-test/fixtures/slurm-dlpno.sh` atualizados; `bash -n` passou.

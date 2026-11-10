@@ -37,10 +37,44 @@
 # ============================================================================
 
 # ----------------------------------------------------------------------------
+# shutdown_orca
+# Stop the container process (and therefore ORCA) before archiving.
+# On a signaled kill the shell trap fires while ORCA is still running; without
+# this the archive would read files being written and ORCA would recreate the
+# temporary files deleted by clean_job. No-op if the process already exited.
+# ----------------------------------------------------------------------------
+function shutdown_orca() {
+    [[ -n "$orca_pid" ]] || return
+    kill -0 "$orca_pid" 2>/dev/null || return
+
+    local i
+    echo "LOG: Stopping ORCA process $orca_pid (signals were received)."
+    kill -TERM "$orca_pid" 2>/dev/null
+
+    # Give ORCA up to 30 s to write its own restart information and exit.
+    for ((i = 0; i < 30; i++)); do
+        kill -0 "$orca_pid" 2>/dev/null || break
+        sleep 1
+    done
+
+    if kill -0 "$orca_pid" 2>/dev/null; then
+        echo "LOG: ORCA still alive after 30s; sending KILL." >&2
+        kill -KILL "$orca_pid" 2>/dev/null
+        sleep 1
+    else
+        echo "LOG: ORCA process stopped."
+    fi
+
+    wait "$orca_pid" 2>/dev/null
+    return 0
+}
+
+# ----------------------------------------------------------------------------
 # clean_job
 # Archive the job output (success or failure) and remove the per-job scratch.
 # Called on normal exit and on termination signals; safe to call more than once.
-# On failure the ORCA temporary files (*.tmp) are discarded before compressing.
+# On failure the ORCA temporary files (*.tmp, *.tmp.*, *.PAUX.tmp, *.PINP0.tmp,
+# *.bas*) are discarded before compressing.
 # ----------------------------------------------------------------------------
 function clean_job() {
     # Avoid running cleanup twice, e.g. when a signal is followed by EXIT.
@@ -50,6 +84,9 @@ function clean_job() {
     cleanup_done=1
 
     echo "LOG: Cleanup started (job_success=$job_success, job_status=$job_status)."
+
+    # Make sure ORCA is not writing anymore before touching the job directory.
+    shutdown_orca
 
     # Nothing to archive if scratch was never created.
     if [[ ! -d "$exeDir" ]]; then
@@ -70,12 +107,21 @@ function clean_job() {
             archive="$localDir/${basename}_${job_id}_failed.tar.gz"
         fi
 
-        # A failed run leaves ORCA temporary files (*.tmp, integral and
-        # PNO/OI-processing scratch) that are useless without a complete run
-        # and can be tens of GB. Drop them so the _failed archive stays small.
+        # A failed run leaves ORCA temporary files that are useless without a
+        # complete run and can be tens of GB: the integral files (*.tmp in
+        # ORCA 5, *.bas, *.bas0, *.bas1, ... in ORCA 6), PAUX/PINP0 workspaces,
+        # their suffixed variants and the correlation densities. Drop them so
+        # the _failed archive stays small.
         if [[ "$job_success" -ne 1 ]]; then
             local tmp_list tmp_size
-            tmp_list=$(find "$jobDir" -type f -name '*.tmp')
+            tmp_list=$(find "$jobDir" -type f \( \
+                -name '*.tmp' -o \
+                -name '*.tmp.*' -o \
+                -name '*.PAUX.tmp' -o \
+                -name '*.PINP0.tmp' -o \
+                -name '*.bas' -o \
+                -name '*.bas[0-9]*' -o \
+                -name '*.densities' \))
             if [[ -n "$tmp_list" ]]; then
                 tmp_size=$(echo "$tmp_list" | xargs -d '\n' du -ch 2>/dev/null | tail -1 | cut -f1)
                 echo "LOG: Removing ORCA temporary files before archiving ($tmp_size):"
@@ -91,10 +137,18 @@ function clean_job() {
         mkdir -p "$localDir"
 
         # Keep scratch if archiving fails, so results are not lost.
-        if tar cvzf "$archive" -C "$exeDir" "$basename/"; then
+        # GNU tar exit codes: 0 = ok, 1 = "some files differ" (a file changed
+        # or vanished while being read), 2 = fatal error. Only 0 and 1 are
+        # acceptable here; --warning=no-file-changed just silences the
+        # corresponding message, it does not change the exit status.
+        tar cvzf "$archive" --warning=no-file-changed -C "$exeDir" "$basename/"
+        tar_status=$?
+        if [[ "$tar_status" -le 1 ]]; then
             echo "LOG: Successfully archived outputs: $archive ($(du -h "$archive" | cut -f1))"
         else
-            echo "LOG: ERROR: failed to create archive; keeping scratch: $exeDir" >&2
+            echo "LOG: ERROR: failed to create archive (tar status $tar_status); keeping scratch: $exeDir" >&2
+            # Do not leave a truncated archive that looks like a valid result.
+            rm -f "$archive"
             exit 1
         fi
     else
@@ -129,10 +183,12 @@ function get_csv_element() {
 # job_status: ORCA/singularity process exit status.
 # cleanup_done: prevents duplicate cleanup.
 # jobDir/basename: filled during execution and reused by clean_job.
+# orca_pid: PID of the container process, stopped by clean_job if still alive.
 # slurm_output: temporary Slurm output file, renamed after input selection.
 job_success=0
 job_status=1
 cleanup_done=0
+orca_pid=""
 jobDir=""
 basename=""
 submit_dir="${SLURM_SUBMIT_DIR:-$PWD}"
