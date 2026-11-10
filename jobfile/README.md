@@ -1,10 +1,10 @@
 # `cjobs_6631.sh`
 
 > **Nota de versionamento:** este README documenta o script **original**
-> `cjobs_6631.sh`. A cópia de trabalho é `slurm-dlpno.sh`, acompanhada de
-> `slurm-dlpno.csv`. Os arquivos `cjobs_6631.sh` e `cjobs_joblist.csv`
-> permanecem preservados como referência. A cópia de trabalho já difere do
-> original; as diferenças estão na seção
+> `cjobs_6631.sh`. A cópia de trabalho é `slurm-dlpno/slurm-dlpno.sh`,
+> acompanhada de `slurm-dlpno/slurm-dlpno.csv`. Os arquivos `cjobs_6631.sh` e
+> `cjobs_joblist.csv` permanecem preservados como referência. A cópia de
+> trabalho já difere do original; as diferenças estão na seção
 > [Diferenças da cópia de trabalho](#diferenças-da-cópia-de-trabalho).
 
 ## Visão geral
@@ -345,8 +345,38 @@ tar -I "zstd -T${SLURM_CPUS_PER_TASK:-2} -1" \
 - A submissão da cópia de trabalho é feita com:
 
 ```bash
-sbatch jobfile/slurm-dlpno.sh
+sbatch jobfile/slurm-dlpno/slurm-dlpno.sh
 ```
+
+## Preparação de um job
+
+Use `jobfile/slurm-dlpno/prepare-job.sh` para configurar a cópia de trabalho
+sem editar manualmente o CSV e as diretivas do Slurm:
+
+```bash
+jobfile/slurm-dlpno/prepare-job.sh <job-name> [input ...]
+```
+
+Exemplos:
+
+```bash
+# Um job; usa int-1-HH.inp do diretório pai por padrão
+jobfile/slurm-dlpno/prepare-job.sh int-1-HH
+
+# Vários inputs; ajusta a array para 1-N
+jobfile/slurm-dlpno/prepare-job.sh lote-01 int-1-HH.inp outro-job.inp
+```
+
+O script:
+
+- grava `slurm-dlpno.csv` com uma linha por input;
+- define `#SBATCH --job-name <job-name>`;
+- define `#SBATCH --output=<job-name>_%J.stdout`;
+- define `#SBATCH --array=1-<número de inputs>`;
+- valida o nome do job e procura os inputs no diretório do script ou no
+  diretório pai (`jobfile/`).
+
+Os arquivos originais `cjobs_6631.sh` e `cjobs_joblist.csv` não são alterados.
 
 O restante deste README continua descrevendo o comportamento do script
 original `cjobs_6631.sh`.

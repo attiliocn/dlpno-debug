@@ -141,3 +141,28 @@ arquivos.
   não no `<basename>.out` do ORCA.
 - `jobfile/README.md` foi atualizado na seção de diferenças da cópia de trabalho.
 - `bash -n jobfile/slurm-dlpno.sh` executado com sucesso.
+
+## 2026-11-10 — Script de preparação de job
+
+- Criado `jobfile/prepare-job.sh` para configurar a cópia de trabalho a partir
+  de um nome de job e de uma lista opcional de inputs.
+- O script preenche `slurm-dlpno.csv`, atualiza `--job-name`, ajusta
+  `--output=<job-name>_%J.stdout` e define `--array=1-<nº de inputs>`.
+- Sem inputs explícitos, usa `<job-name>.inp`; com múltiplos inputs, gera uma
+  linha por input e ajusta a array para `1-N`.
+- O script valida nomes e verifica a existência dos inputs no diretório de
+  `jobfile/`; os arquivos originais permanecem intactos.
+- Testado em diretório temporário com um e com múltiplos inputs; `bash -n`
+  passou.
+
+## 2026-11-10 — Reorganização da cópia de trabalho
+
+- Movidos os arquivos editáveis para `jobfile/slurm-dlpno/`:
+  `slurm-dlpno.sh`, `slurm-dlpno.csv` e `prepare-job.sh`.
+- O script `prepare-job.sh` passou a procurar os inputs no próprio diretório ou
+  no diretório pai (`jobfile/`), permitindo configurar jobs com os inputs
+  existentes ao lado dos scripts originais.
+- `AGENTS.md` e `jobfile/README.md` foram atualizados com os novos caminhos.
+- `bash -n` passou em `prepare-job.sh` e `slurm-dlpno.sh`; o fluxo de
+  configuração com um e com múltiplos inputs foi testado em diretório
+  temporário.
