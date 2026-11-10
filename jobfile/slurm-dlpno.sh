@@ -4,14 +4,15 @@
 
 #SBATCH --job-name 6631
 #SBATCH --output=cjobs_log_%x_%J.stdout
-# Ajuste a partition conforme o cluster (ex.: cpu, gpu, bigmem).
-#SBATCH --partition=cpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=4
 #SBATCH --mem=80000
 #SBATCH --time=720:00:00
 #SBATCH --array=1-1
 #SBATCH --signal=B:TERM@60
+
+# Ajuste a partition conforme o cluster (ex.: cpu, gpu, bigmem).
+#SBATCH --partition=slow
 
 #############  FUNCTIONS  ##############
 
