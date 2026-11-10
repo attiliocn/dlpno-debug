@@ -38,6 +38,8 @@ Em outras palavras:
 - `jobfile/slurm-dlpno/prepare-job.sh` — configura o CSV, o `--job-name`, o
   `--output` e a numeração da `--array` da cópia de trabalho a partir de um
   nome de job.
+- `jobfile/slurm-dlpno/water1.inp` e `water2.inp` — inputs de exemplo para um
+  lote de teste com duas tasks.
 - `jobfile/README.md` — documentação do fluxo, variáveis, recursos e pontos de
   atenção do script original `cjobs_6631.sh`. A cópia de trabalho está em
   `jobfile/slurm-dlpno/`.

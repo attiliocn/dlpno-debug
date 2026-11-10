@@ -2,13 +2,13 @@
 
 #############  SCHEDULER  ##############
 
-#SBATCH --job-name 6631
-#SBATCH --output=log.stdout
+#SBATCH --job-name water-dlpno
+#SBATCH --output=water-dlpno_%J.stdout
 #SBATCH --nodes=1
 #SBATCH --ntasks=4
 #SBATCH --mem=80000
 #SBATCH --time=720:00:00
-#SBATCH --array=1-1
+#SBATCH --array=1-2
 #SBATCH --signal=B:TERM@60
 
 #SBATCH --partition=slow

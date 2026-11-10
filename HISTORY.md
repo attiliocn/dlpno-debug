@@ -166,3 +166,13 @@ arquivos.
 - `bash -n` passou em `prepare-job.sh` e `slurm-dlpno.sh`; o fluxo de
   configuração com um e com múltiplos inputs foi testado em diretório
   temporário.
+
+## 2026-11-10 — Lote de exemplo com inputs de água
+
+- Adicionados `jobfile/slurm-dlpno/water1.inp` e `water2.inp` como inputs de
+  exemplo para testar a configuração de múltiplos jobs.
+- A cópia de trabalho foi configurada com `prepare-job.sh` para o lote
+  `water-dlpno`, com `--output=water-dlpno_%J.stdout` e `--array=1-2`.
+- O CSV `slurm-dlpno.csv` passou a apontar para `water1.inp` e `water2.inp`.
+- `AGENTS.md` e `jobfile/README.md` foram atualizados para registrar os inputs
+  de exemplo e o estado atual da configuração.

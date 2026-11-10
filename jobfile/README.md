@@ -378,6 +378,10 @@ O script:
 
 Os arquivos originais `cjobs_6631.sh` e `cjobs_joblist.csv` não são alterados.
 
+O diretório inclui os inputs de exemplo `water1.inp` e `water2.inp`. O estado
+atual da cópia de trabalho está configurado para o lote `water-dlpno`, com
+`--array=1-2` e o CSV apontando para esses dois inputs.
+
 O restante deste README continua descrevendo o comportamento do script
 original `cjobs_6631.sh`.
 
