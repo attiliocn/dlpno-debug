@@ -353,3 +353,22 @@ arquivos.
   presente e cai para os fixtures quando só o diretório de teste foi copiado.
 - Testado com uma cópia isolada de `oom-test/`; o setup, o `prepare-job.sh` e
   a geração de `work/` funcionaram.
+
+## 2026-11-10 — Remove arquivos `*.tmp` do archive de falha
+
+- `clean_job` agora remove todos os arquivos `*.tmp` do diretório do job
+  antes de criar o archive, quando `job_success != 1`.
+- A remoção usa `find "$jobDir" -type f -name '*.tmp'`, portanto alcança
+  subdiretórios e cobre `<basename>.tmp`, `<basename>.en.tmp` e
+  `<basename>.SHARKINP.tmp` (nomes confirmados nos exemplos de
+  `sample-dlpno/`).
+- O log registra o tamanho total liberado e a lista de arquivos removidos.
+- Justificativa: os `*.tmp` são scratch de integrais/PNO e podem chegar a
+  dezenas de GB; sem o cálculo completo eles não servem para nada e tornavam o
+  archive `_failed` inútil na prática.
+- Em sucesso o arquivamento continua integral, sem remoção de `*.tmp`.
+- Testado com um `singularity` falso em `/tmp`: falha (`exit 137`, sem marcador)
+  gerou `water1_9101_failed.tar.gz` sem os `*.tmp` (7 MB liberados) e manteve
+  `.out`, `stderr.log`, `.gbw` e o input; sucesso gerou o archive completo.
+- `jobfile/slurm-dlpno/slurm-dlpno.sh`, `jobfile/README.md` e a cópia
+  `oom-test/fixtures/slurm-dlpno.sh` foram atualizados; `bash -n` passou.

@@ -40,6 +40,7 @@
 # clean_job
 # Archive the job output (success or failure) and remove the per-job scratch.
 # Called on normal exit and on termination signals; safe to call more than once.
+# On failure the ORCA temporary files (*.tmp) are discarded before compressing.
 # ----------------------------------------------------------------------------
 function clean_job() {
     # Avoid running cleanup twice, e.g. when a signal is followed by EXIT.
@@ -67,6 +68,22 @@ function clean_job() {
             archive="$localDir/${basename}_${job_id}.tar.gz"
         else
             archive="$localDir/${basename}_${job_id}_failed.tar.gz"
+        fi
+
+        # A failed run leaves ORCA temporary files (*.tmp, integral and
+        # PNO/OI-processing scratch) that are useless without a complete run
+        # and can be tens of GB. Drop them so the _failed archive stays small.
+        if [[ "$job_success" -ne 1 ]]; then
+            local tmp_list tmp_size
+            tmp_list=$(find "$jobDir" -type f -name '*.tmp')
+            if [[ -n "$tmp_list" ]]; then
+                tmp_size=$(echo "$tmp_list" | xargs -d '\n' du -ch 2>/dev/null | tail -1 | cut -f1)
+                echo "LOG: Removing ORCA temporary files before archiving ($tmp_size):"
+                echo "$tmp_list" | sed 's/^/LOG:   /'
+                echo "$tmp_list" | xargs -d '\n' rm -f
+            else
+                echo "LOG: No ORCA temporary files to remove."
+            fi
         fi
 
         echo "LOG: Archiving job directory: $jobDir"

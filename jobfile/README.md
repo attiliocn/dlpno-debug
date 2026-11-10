@@ -300,6 +300,7 @@ seguintes alterações:
 | CSV usado | `cjobs_joblist.csv` | `slurm-dlpno.csv` |
 | Finalização | `cp -r` para `localDir` | arquivo `.tar.gz` em `localDir` |
 | Limpeza | sempre remove o scratch | remove apenas após arquivar com sucesso |
+| Falha | não trata | remove `*.tmp` antes de arquivar `_failed` |
 | Status do ORCA | não verificado | verifica `wait` e `ORCA TERMINATED NORMALLY` |
 | Verbosidade | echos esparsos | echos de contexto, caminhos, PID, status, arquivo e limpeza |
 
@@ -327,6 +328,21 @@ $localDir/<inputname>_${SLURM_JOB_ID}_failed.tar.gz
 tar cvzf "$archive" -C "$exeDir" "$basename/"
 ```
 
+- Em falha (`job_success=0`), todos os arquivos `*.tmp` do diretório do job
+  são removidos antes de compactar, inclusive em subdiretórios:
+
+```bash
+find "$jobDir" -type f -name '*.tmp'
+```
+
+  Isso cobre `<basename>.tmp`, `<basename>.en.tmp`, `<basename>.SHARKINP.tmp`
+  e afins. Esses arquivos são scratch de integrais/PNO e podem ocupar dezenas
+  de GB; sem o cálculo completo eles não têm utilidade, e o archive `_failed`
+  fica com o tamanho dos arquivos de resultado de fato (`<basename>.out`,
+  `stderr.log`, `<basename>.gbw`, input e demais arquivos menores). Os
+  diretórios que ficarem vazios (`<basename>.tmpdir/`) continuam no archive.
+- Em sucesso o conteúdo do job é arquivado integralmente, sem remoção de
+  `*.tmp`.
 - Se o `tar` falhar, o scratch é mantido para inspeção e o script termina com
   status de erro.
 - A cópia de trabalho exige `tar` com suporte a gzip (`gzip`) disponível no
