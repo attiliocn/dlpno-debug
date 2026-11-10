@@ -110,3 +110,10 @@ Em outras palavras:
   documentação.
 - Manter `#SBATCH --partition` na cópia de trabalho e confirmar o nome da
   partição disponível no CloudUFSCar antes de submeter.
+- Na finalização normal, arquivar a pasta de resultados em
+  `$localDir/job_${SLURM_JOB_ID}.tar.zst` com `tar` + `zstd`; não copiar
+  resultados soltos para `/home`. Em falha, usar o sufixo `_failed` e manter
+  o scratch se o arquivamento não funcionar.
+- Não reintroduzir sincronização de containers nem `rclone` na cópia de
+  trabalho. O container do ORCA deve permanecer com caminho fixo e ser
+  verificado antes da execução.

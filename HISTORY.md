@@ -92,3 +92,52 @@ arquivos.
 - `jobfile/README.md` foi atualizado para registrar a diferença entre o
   original e a cópia de trabalho.
 - `bash -n jobfile/slurm-dlpno.sh` executado com sucesso.
+
+## 2026-11-10 — Arquivamento dos resultados em tar.zst
+
+- Alterada a cópia de trabalho `jobfile/slurm-dlpno.sh` para arquivar os
+  resultados em `$localDir/job_${SLURM_JOB_ID}.tar.zst` ao final de uma
+  execução normal, seguindo a recomendação de `docs/andre-email.txt`.
+- Em terminação anormal, o arquivo gerado é
+  `$localDir/job_${SLURM_JOB_ID}_failed.tar.zst`; se o `tar` falhar, o scratch
+  é mantido para inspeção e o script termina com erro.
+- A detecção de sucesso passou a verificar o status de `wait` e a presença de
+  `****ORCA TERMINATED NORMALLY****` no output.
+- `localDir` foi alterado para `/home/$USER/run/slurm-dlpno`; o script copia e
+  lê `slurm-dlpno.sh`/`slurm-dlpno.csv`.
+- A partition atual da cópia de trabalho é `slow`; `jobfile/README.md` foi
+  atualizado com uma seção de diferenças em relação ao original.
+- `bash -n jobfile/slurm-dlpno.sh` executado com sucesso.
+
+## 2026-11-10 — Remoção da sincronização de containers
+
+- Removidas de `jobfile/slurm-dlpno.sh` as funções de lock e sincronização de
+  containers: `acquire_lock`, `release_lock`, `attempt_acquire_lock`,
+  `create_directory_with_group_ownership` e `fetch_containers_from_drive`.
+- Removidas as variáveis associadas: `g16GID`, `scrDir`, `usrScrDir`,
+  `ctDirRemote`, `ctDirLocal` e `ct`.
+- O container do ORCA permanece em caminho fixo:
+  `/scratch/$USER/containers/orca-611_2025-12-16_19-01-10_orca611.sif`.
+- Adicionada verificação `[[ -f "$ctPath" ]]`; se o container não existir, o
+  script aborta antes de criar o diretório do job.
+- `jobfile/README.md` e `AGENTS.md` foram atualizados; `bash -n` passou.
+
+## 2026-11-10 — Remoção de variáveis não usadas
+
+- Removidas de `jobfile/slurm-dlpno.sh` as variáveis `allocCPU`, `allocRAM` e
+  `numjobs`, que não eram utilizadas na lógica do script.
+- O laço único passou de `for job_number in 0` para `for _ in 0`, eliminando a
+  variável de índice sem uso.
+- `jobfile/README.md` foi atualizado para registrar a remoção.
+- `bash -n jobfile/slurm-dlpno.sh` executado com sucesso.
+
+## 2026-11-10 — Aumento da verbosidade do runtime
+
+- Adicionados echos de progresso em `jobfile/slurm-dlpno.sh`: contexto do job
+  Slurm, horário, host, diretórios, verificação do container, cópia de arquivos,
+  input selecionado, criação do job, variáveis de threads, PID/status do ORCA,
+  marcador de terminação, arquivamento e limpeza.
+- Os echos são enviados ao stdout do job, portanto aparecem no log do Slurm e
+  não no `<basename>.out` do ORCA.
+- `jobfile/README.md` foi atualizado na seção de diferenças da cópia de trabalho.
+- `bash -n jobfile/slurm-dlpno.sh` executado com sucesso.

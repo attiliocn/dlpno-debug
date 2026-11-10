@@ -3,7 +3,7 @@
 #############  SCHEDULER  ##############
 
 #SBATCH --job-name 6631
-#SBATCH --output=cjobs_log_%x_%J.stdout
+#SBATCH --output=log.stdout
 #SBATCH --nodes=1
 #SBATCH --ntasks=4
 #SBATCH --mem=80000
@@ -11,123 +11,51 @@
 #SBATCH --array=1-1
 #SBATCH --signal=B:TERM@60
 
-# Ajuste a partition conforme o cluster (ex.: cpu, gpu, bigmem).
 #SBATCH --partition=slow
 
 #############  FUNCTIONS  ##############
 
 function clean_job() {
-    echo "LOG: Received signal. The trap has been activated."
-    if [[ -d "$exeDir" ]]; then
-        echo "LOG: Copying outputs to local directory."
-        cp -r "$exeDir"/*/ "$localDir"
-        echo "LOG: Successfully copied outputs."
-        echo "LOG: Removing scratch directory."
-        rm -vrf "$exeDir"
-        echo "LOG: Scratch directory removed."
-        echo "LOG: Job completed."
-    else
-        echo "LOG: Scratch directory does not exist."
-    fi
-    exit
-}
-function acquire_lock() {
-    local lock_name=$1
-    local lock_location=$2
-    local lock_file="$lock_location/$lock_name"
-
-    exec 3>"$lock_file"
-    if flock -n -e 3; then
-        echo "LOG: Successfully acquired lock for $lock_name at $lock_location."
-        return 0
-    else
-        return 1
-    fi
-}
-function release_lock() {
-    local lock_name=$1
-    local lock_location=$2
-    local lock_file="$lock_location"/"$lock_name"
-
-    exec 3>&-
-    rm "$lock_file"
-    echo "LOG: The lock for $lock_name at $lock_location has been released."
-}
-function attempt_acquire_lock() {
-    local lock_name=$1
-    local lock_location=$2
-    local max_wait_time=$3
-    local wait_time=0
-
-    while ! acquire_lock "$lock_name" "$lock_location"; do
-        echo "LOG: Waiting for the lock to be released..."
-        sleep 5
-        wait_time=$((wait_time + 5))
-        if [ "$wait_time" -gt "$max_wait_time" ]; then
-            echo "LOG: Maximum wait time exceeded. Exiting..."
-            exit 1
-        fi
-    done
-}
-function create_directory_with_group_ownership() {
-    directory=$1
-    gid=$2
-    parent_directory=$(dirname "$directory")
-
-    # Check if the directory exists
-    if [ ! -d "$directory" ]; then
-        # Create the directory
-        mkdir -p "$directory"
-
-        # Change the group ownership by GID
-        chown -R :"$gid" "$parent_directory"
-        chmod -R 770 "$directory"
-
-        echo "LOG: Directory created: $directory"
-        echo "LOG: Group ownership set to GID: $gid"
-        echo "LOG: Permissions set to rwx for owner and group, and none for others."
-    else
-        echo "LOG: Directory already exists: $directory"
-        directory_owner=$(stat -c "%U" "$parent_directory")
-
-        if [ "$USER" = "$directory_owner" ]; then
-            echo "LOG: The user $USER is the owner of the directory $parent_directory. Applying standard permission settings"
-
-            # Change the group ownership by GID
-            chown -R :"$gid" "$parent_directory"
-            chmod -R 770 "$directory"
-        else
-            echo "LOG: The user $USER is not the owner of the directory $parent_directory. There is nothing to do"
-            return
-        fi
-    fi
-}
-function fetch_containers_from_drive() {
-    container_cloud_dir="$1"
-    container_local_dir="$2"
-    container_local_dir_parent=$(dirname "$container_local_dir")
-
-    synced_file="$container_local_dir_parent/last_sync.lock"
-
-    # Check if the synced file exists and is older than 1 week
-    if [ -e "$synced_file" ]; then
-        file_age=$(($(date +%s) - $(stat -c %Y "$synced_file")))
-
-        if [ "$file_age" -lt 604800 ]; then
-            echo "LOG: The last sync was done $file_age seconds ago. Actions will not be performed."
-            return
-        fi
-    fi
-
-    if ! command -v rclone &>/dev/null; then
-        echo "LOG: The rclone command is unavailable. No synchronization will be performed."
+    if [[ "$cleanup_done" -eq 1 ]]; then
         return
     fi
-    echo "LOG: Updating containers directory using rclone"
-    rclone sync -v "$container_cloud_dir" "$container_local_dir"
+    cleanup_done=1
 
-    touch "$synced_file"
-    echo "LOG: Updated last_sync.lock file"
+    echo "LOG: Cleanup started (job_success=$job_success, job_status=$job_status)."
+
+    if [[ ! -d "$exeDir" ]]; then
+        echo "LOG: Scratch directory does not exist."
+        echo "LOG: Cleanup finished."
+        return
+    fi
+
+    if [[ -n "$jobDir" && -d "$jobDir" ]]; then
+        local job_id="${SLURM_JOB_ID:-unknown}"
+        local archive
+        if [[ "$job_success" -eq 1 ]]; then
+            archive="$localDir/job_${job_id}.tar.zst"
+        else
+            archive="$localDir/job_${job_id}_failed.tar.zst"
+        fi
+
+        echo "LOG: Archiving job directory: $jobDir"
+        echo "LOG: Creating output archive: $archive"
+        mkdir -p "$localDir"
+        if tar -I "zstd -T${SLURM_CPUS_PER_TASK:-2} -1" \
+            -cf "$archive" -C "$exeDir" "$basename/"; then
+            echo "LOG: Successfully archived outputs: $archive ($(du -h "$archive" | cut -f1))"
+        else
+            echo "LOG: ERROR: failed to create archive; keeping scratch: $exeDir" >&2
+            exit 1
+        fi
+    else
+        echo "LOG: No job output directory found; nothing to archive."
+    fi
+
+    echo "LOG: Removing scratch directory: $exeDir"
+    rm -vrf "$exeDir"
+    echo "LOG: Scratch directory removed."
+    echo "LOG: Cleanup finished."
 }
 function get_csv_element() {
     local csv_file=$1
@@ -140,46 +68,67 @@ function get_csv_element() {
 ############  JOB RUNTIME  #############
 
 # trap signals if the job is either done or interrupted
-trap clean_job EXIT HUP INT TERM ERR
+job_success=0
+job_status=1
+cleanup_done=0
+jobDir=""
+basename=""
+trap clean_job EXIT
+trap 'job_success=0; job_status=1; clean_job; exit 1' HUP INT TERM
 
-# allocation details
-allocCPU=4
-allocRAM=20000
-g16GID=2111
+echo "LOG: ============================================================"
+echo "LOG: Starting slurm-dlpno.sh"
+echo "LOG: Start time: $(date '+%Y-%m-%d %H:%M:%S %Z')"
+echo "LOG: Host: $(hostname)"
+echo "LOG: User: $USER"
+echo "LOG: Job ID: ${SLURM_JOB_ID:-unset}"
+echo "LOG: Array task ID: ${SLURM_ARRAY_TASK_ID:-unset}"
+echo "LOG: Partition: ${SLURM_JOB_PARTITION:-unset}"
+echo "LOG: Nodes: ${SLURM_JOB_NUM_NODES:-unset}"
+echo "LOG: Tasks: ${SLURM_NTASKS:-unset}"
+echo "LOG: CPUs per task: ${SLURM_CPUS_PER_TASK:-unset}"
+echo "LOG: Memory per node: ${SLURM_MEM_PER_NODE:-unset} MB"
+echo "LOG: ============================================================"
 
 # relevant directories
-localDir="/home/u831869/run/slurm-dlpno"
-scrDir="/scratch"
-usrScrDir="/scratch/"$USER""
+localDir="/home/$USER/run/slurm-dlpno"
 exeDir="/scratch/"$USER"/jobs/$SLURM_JOB_ID"
-ctDirRemote="sintcatmol:containers"
-ctDirLocal="/scratch/"$USER"/containers"
-ct="orca-611_2025-12-16_19-01-10_orca611.sif"
-ctPath="/scratch/"$USER"/containers"/orca-611_2025-12-16_19-01-10_orca611.sif
+ctPath="/scratch/$USER/containers/orca-611_2025-12-16_19-01-10_orca611.sif"
 
-# update containers
-echo "LOG: Requesting lock for synchronization using rclone."
-attempt_acquire_lock "$USER"_sync.lock "$scrDir" 3600
-create_directory_with_group_ownership "$ctDirLocal" "$g16GID"
-fetch_containers_from_drive "$ctDirRemote" "$ctDirLocal"
-release_lock "$USER"_sync.lock "$scrDir"
+echo "LOG: localDir: $localDir"
+echo "LOG: exeDir: $exeDir"
+echo "LOG: ORCA container: $ctPath"
+echo "LOG: Checking ORCA container."
+
+if [[ ! -f "$ctPath" ]]; then
+    echo "LOG: ORCA container not found: $ctPath" >&2
+    exit 1
+fi
+
+echo "LOG: ORCA container found."
 
 # job execution
-echo "LOG: Creating execution directory"
+echo "LOG: Creating execution directory: $exeDir"
 mkdir -p "$exeDir"
-cp "$localDir"/cjobs_*.sh "$localDir"/cjobs_joblist.csv "$exeDir"
+echo "LOG: Copying script and CSV to execution directory."
+cp "$localDir"/slurm-dlpno.sh "$localDir"/slurm-dlpno.csv "$exeDir"
+echo "LOG: Script and CSV copied."
 
-numjobs=1
 echo "LOG: Running jobs"
 # NOTICE: This is not a massive job.
 #         The for loop will run only once.
-for job_number in 0; do
+for _ in 0; do
     cd $exeDir
-    job=$(get_csv_element cjobs_joblist.csv "$SLURM_ARRAY_TASK_ID" 2)
+    echo "LOG: Reading job list for array task ID ${SLURM_ARRAY_TASK_ID:-unset}."
+    job=$(get_csv_element slurm-dlpno.csv "$SLURM_ARRAY_TASK_ID" 2)
+    echo "LOG: Selected input: $job"
     basename="$(echo $job | rev | cut -f 2- -d '.' | rev)"
     jobDir="$exeDir"/"$basename"
+    echo "LOG: Creating job directory: $jobDir"
     mkdir "$jobDir"
+    echo "LOG: Copying input to job directory."
     cp "$localDir"/"$job" "$jobDir"
+    echo "LOG: Input copied."
 
     echo LOG: Current job: "$job"
     echo LOG: Job basename: "$basename"
@@ -187,21 +136,50 @@ for job_number in 0; do
     echo LOG: Hostname: $(hostname)
     echo LOG: Singularity container path: "$ctPath"
 
+    echo "LOG: Changing to job directory: $jobDir"
     cd "$jobDir"
     # <-- orca execution routine
+    echo "LOG: Setting thread and stack limits."
     export MKL_NUM_THREADS=4
     export OMP_NUM_THREADS=4
     export OMP_STACKSIZE=4G
     ulimit -s unlimited
+    echo "LOG: MKL_NUM_THREADS=$MKL_NUM_THREADS OMP_NUM_THREADS=$OMP_NUM_THREADS OMP_STACKSIZE=$OMP_STACKSIZE"
 
+    echo "LOG: Launching ORCA container."
+    echo "LOG: ORCA stdout: $jobDir/$basename.out"
+    echo "LOG: ORCA stderr: $jobDir/stderr.log"
     singularity run \
     --bind="$PWD":"$PWD" \
     "$ctPath" \
     "$PWD" \
     "$job" 1> "$basename".out 2> stderr.log &
-    wait
+    orca_pid=$!
+    echo "LOG: ORCA process started with PID $orca_pid."
+    wait "$orca_pid"
+    job_status=$?
+    echo "LOG: ORCA process finished with status $job_status."
+    echo "LOG: Checking ORCA normal termination marker."
+    if [[ "$job_status" -eq 0 ]] && grep -q 'ORCA TERMINATED NORMALLY' "$jobDir/$basename.out"; then
+        job_success=1
+        echo "LOG: ORCA terminated normally."
+    else
+        job_success=0
+        [[ "$job_status" -eq 0 ]] && job_status=1
+        echo "LOG: ORCA did not terminate normally (status=$job_status)."
+    fi
     # end of orca execution routine -->
+    echo "LOG: Returning to execution directory: $exeDir"
     cd "$exeDir"
 done
 
-exit
+echo "LOG: All jobs processed."
+echo "LOG: End time: $(date '+%Y-%m-%d %H:%M:%S %Z')"
+
+if [[ "$job_success" -eq 1 ]]; then
+    echo "LOG: Job completed successfully."
+    exit 0
+fi
+
+echo "LOG: Job did not complete normally."
+exit 1

@@ -3,8 +3,9 @@
 > **Nota de versionamento:** este README documenta o script **original**
 > `cjobs_6631.sh`. A cópia de trabalho é `slurm-dlpno.sh`, acompanhada de
 > `slurm-dlpno.csv`. Os arquivos `cjobs_6631.sh` e `cjobs_joblist.csv`
-> permanecem preservados como referência. A cópia de trabalho atualmente
-> inclui `#SBATCH --partition=cpu`, que não existe no original.
+> permanecem preservados como referência. A cópia de trabalho já difere do
+> original; as diferenças estão na seção
+> [Diferenças da cópia de trabalho](#diferenças-da-cópia-de-trabalho).
 
 ## Visão geral
 
@@ -52,7 +53,6 @@ O script copia `cjobs_*.sh`, `cjobs_joblist.csv` e o input para o scratch; ele
 |---|---|---|
 | `--job-name` | `6631` | Nome exibido no Slurm e usado em `%x` |
 | `--output` | `cjobs_log_%x_%J.stdout` | Log do Slurm no diretório de submissão |
-| `--partition` | `cpu` | Presente apenas em `slurm-dlpno.sh`; ajustar ao cluster |
 | `--nodes` | `1` | Execução em node único |
 | `--ntasks` | `4` | Deve coincidir com `%pal nprocs` |
 | `--mem` | `80000` MB | Memória total reservada para o job |
@@ -69,7 +69,8 @@ allocRAM=20000
 
 Esses valores são apenas informativos/legados; quem realmente define os
 recursos é o cabeçalho `#SBATCH` e, no caso do ORCA, `%pal` e `%maxcore` no
-arquivo `.inp`.
+arquivo `.inp`. Na cópia de trabalho, `allocCPU`, `allocRAM` e `numjobs` foram
+removidos por não serem usados.
 
 ## Variáveis de configuração
 
@@ -84,6 +85,10 @@ arquivo `.inp`.
 | `ctDirLocal` | `/scratch/$USER/containers` | Cópia local dos contêineres |
 | `ct` | `orca-611_...sif` | Definida, mas não usada diretamente |
 | `ctPath` | `/scratch/$USER/containers/orca-611_...sif` | Caminho efetivo do contêiner |
+
+> Esta tabela descreve o script original. Na cópia de trabalho, `g16GID`,
+> `scrDir`, `usrScrDir`, `ctDirRemote`, `ctDirLocal`, `ct`, `allocCPU`,
+> `allocRAM` e `numjobs` foram removidos; ver a seção de diferenças.
 
 Atenção: `localDir` está com um caminho de usuário fixo
 (`/home/u831869/run/slurm-dlpno`). Ele precisa ser ajustado para o usuário e o
@@ -257,7 +262,7 @@ O log do Slurm pode ser acompanhado com:
 tail -f cjobs_log_6631_<JOBID>.stdout
 ```
 
-## Pontos de atenção
+## Pontos de atenção do script original
 
 1. **Transferência para `/home`:** a limpeza usa `cp -r` para `localDir`, que
    atualmente aponta para `/home/...`. Isso conflita com a diretriz do cluster
@@ -277,6 +282,74 @@ tail -f cjobs_log_6631_<JOBID>.stdout
    scratch e o paralelismo.
 8. **Variáveis não usadas:** `allocCPU`, `allocRAM`, `usrScrDir`, `ct`,
    `numjobs` e `job_number` não participam da lógica principal.
+
+## Diferenças da cópia de trabalho
+
+A cópia de trabalho preserva o fluxo geral do original, mas já recebeu as
+seguintes alterações:
+
+| Item | Original | Cópia de trabalho |
+|---|---|---|
+| Partition | ausente | `#SBATCH --partition=slow` |
+| Sincronização do contêiner | `rclone` + lock + GID | removida; container fixo em `ctPath` |
+| Variáveis não usadas | `allocCPU`, `allocRAM`, `numjobs` | removidas; loop usa `_` |
+| `localDir` | `/home/u831869/run/slurm-dlpno` | `/home/$USER/run/slurm-dlpno` |
+| Script copiado para o scratch | `cjobs_*.sh` | `slurm-dlpno.sh` |
+| CSV usado | `cjobs_joblist.csv` | `slurm-dlpno.csv` |
+| Finalização | `cp -r` para `localDir` | arquivo `.tar.zst` em `localDir` |
+| Limpeza | sempre remove o scratch | remove apenas após arquivar com sucesso |
+| Status do ORCA | não verificado | verifica `wait` e `ORCA TERMINATED NORMALLY` |
+| Verbosidade | echos esparsos | echos de contexto, caminhos, PID, status, arquivo e limpeza |
+
+Detalhes:
+
+- Em terminação normal, o arquivo gerado é:
+
+```text
+$localDir/job_${SLURM_JOB_ID}.tar.zst
+```
+
+- Em terminação anormal, o arquivo gerado é:
+
+```text
+$localDir/job_${SLURM_JOB_ID}_failed.tar.zst
+```
+
+- O comando de arquivamento segue a recomendação de `docs/andre-email.txt`:
+
+```bash
+tar -I "zstd -T${SLURM_CPUS_PER_TASK:-2} -1" \
+    -cf "$archive" -C "$exeDir" "$basename/"
+```
+
+- Se o `tar` falhar, o scratch é mantido para inspeção e o script termina com
+  status de erro.
+- A cópia de trabalho exige `zstd` e `tar` disponíveis no ambiente.
+- O container do ORCA não é mais sincronizado. Ele deve existir previamente em:
+
+```text
+/scratch/$USER/containers/orca-611_2025-12-16_19-01-10_orca611.sif
+```
+
+- O script verifica a existência do container com `-f` e aborta se ele não
+  estiver disponível.
+- Não são necessários `rclone`, `flock`, `chown` ou `chmod` para a cópia de
+  trabalho.
+- `allocCPU`, `allocRAM` e `numjobs` foram removidos; o laço único usa
+  `for _ in 0`, sem variável de índice não utilizada.
+- A cópia de trabalho emite echos de progresso no stdout do Slurm: contexto do
+  job, diretórios, cópia de arquivos, input selecionado, PID e status do ORCA,
+  marcador de terminação, arquivamento e limpeza. Esses echos não vão para o
+  `<basename>.out` do ORCA.
+- `localDir` deve conter `slurm-dlpno.sh`, `slurm-dlpno.csv` e o input.
+- A submissão da cópia de trabalho é feita com:
+
+```bash
+sbatch jobfile/slurm-dlpno.sh
+```
+
+O restante deste README continua descrevendo o comportamento do script
+original `cjobs_6631.sh`.
 
 ## Referências internas
 
