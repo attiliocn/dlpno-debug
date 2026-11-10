@@ -59,3 +59,36 @@ arquivos.
 - Registradas as implicações para diretório exclusivo por job, `%pal`/`--ntasks`,
   memória, `StorageType Shared`, I/O de disco e transferência final.
 - Atualizados `AGENTS.md` e os documentos de pesquisa com referências cruzadas.
+
+## 2026-11-10 — README do script de submissão
+
+- Criado `jobfile/README.md` documentando `jobfile/cjobs_6631.sh`: recursos
+  Slurm, variáveis, sincronização do contêiner, seleção do input, execução do
+  ORCA, logs, limpeza do scratch e pré-requisitos.
+- Registrados os pontos de atenção atuais: `localDir` fixo, cópia para `/home`
+  em desacordo com a diretriz do cluster, ausência de verificação do status do
+  ORCA, risco na limpeza do scratch, inconsistência `%maxcore`/`--mem` e
+  possível oversubscription de threads.
+- Adicionado `jobfile/README.md` à lista de conteúdos do `AGENTS.md`.
+
+## 2026-11-10 — Original preservado e cópia de trabalho
+
+- Definido que `jobfile/cjobs_6631.sh` e `jobfile/cjobs_joblist.csv` são os
+  originais preservados e documentados; eles não devem ser editados.
+- Criados `jobfile/slurm-dlpno.sh` e `jobfile/slurm-dlpno.csv` como cópias de
+  trabalho. No momento da criação, são idênticos aos originais (`diff` vazio).
+- As próximas alterações funcionais serão feitas em `slurm-dlpno.sh` e
+  `slurm-dlpno.csv`.
+- `jobfile/README.md` continua documentando o original `cjobs_6631.sh`; foi
+  adicionada uma nota indicando qual é a cópia de trabalho.
+- `AGENTS.md` foi atualizado com a regra de não editar os arquivos originais.
+
+## 2026-11-10 — Opção de partition no script de trabalho
+
+- Adicionada a diretiva `#SBATCH --partition=cpu` em
+  `jobfile/slurm-dlpno.sh`, com comentário para ajuste ao nome real da
+  partição do CloudUFSCar.
+- O script original `jobfile/cjobs_6631.sh` permaneceu inalterado.
+- `jobfile/README.md` foi atualizado para registrar a diferença entre o
+  original e a cópia de trabalho.
+- `bash -n jobfile/slurm-dlpno.sh` executado com sucesso.

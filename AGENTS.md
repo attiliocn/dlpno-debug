@@ -28,10 +28,16 @@ Em outras palavras:
 
 ## Conteúdo do repositório
 
-- `jobfile/cjobs_6631.sh` — script de submissão Slurm e execução do ORCA em
-  contêiner Singularity.
-- `jobfile/cjobs_joblist.csv` — lista de jobs; atualmente aponta para
-  `int-1-HH.inp`.
+- `jobfile/cjobs_6631.sh` — script original preservado como referência;
+  documentado em `jobfile/README.md`.
+- `jobfile/cjobs_joblist.csv` — CSV original preservado como referência.
+- `jobfile/slurm-dlpno.sh` — cópia de trabalho que será editada; no momento é
+  idêntica ao script original.
+- `jobfile/slurm-dlpno.csv` — CSV de trabalho que acompanha
+  `slurm-dlpno.sh`; no momento é idêntico ao CSV original.
+- `jobfile/README.md` — documentação do fluxo, variáveis, recursos e pontos de
+  atenção do script original `cjobs_6631.sh`. A cópia de trabalho é
+  `slurm-dlpno.sh`.
 - `jobfile/int-1-HH.inp` — entrada ORCA do cálculo DLPNO em questão.
 - `sample-dlpno/` — dois exemplos de saída ORCA que terminaram normalmente
   (`bis_int_tbpButTrans_3.out` e `ts-exchg-2_f3_17.out`), úteis como referência
@@ -98,3 +104,9 @@ Em outras palavras:
 - O Slurm do CloudUFSCar tem um scratch por node e o job será single-node;
   todos os ranks compartilham o mesmo scratch. Manter `--nodes=1`, usar um
   diretório exclusivo por job e não assumir scratch privado por rank.
+- Editar o script de trabalho `jobfile/slurm-dlpno.sh` e o CSV
+  `jobfile/slurm-dlpno.csv`. Não modificar `cjobs_6631.sh` nem
+  `cjobs_joblist.csv`: eles são os originais preservados para referência e
+  documentação.
+- Manter `#SBATCH --partition` na cópia de trabalho e confirmar o nome da
+  partição disponível no CloudUFSCar antes de submeter.
