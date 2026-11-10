@@ -176,3 +176,111 @@ arquivos.
 - O CSV `slurm-dlpno.csv` passou a apontar para `water1.inp` e `water2.inp`.
 - `AGENTS.md` e `jobfile/README.md` foram atualizados para registrar os inputs
   de exemplo e o estado atual da configuração.
+
+## 2026-11-10 — localDir automático no prepare-job
+
+- `prepare-job.sh` passou a atualizar também `localDir` em
+  `slurm-dlpno.sh` com o caminho absoluto do diretório atual (`$PWD`).
+- O caminho é convertido para uma forma shell-safe antes de ser gravado no
+  script, suportando espaços e caracteres especiais.
+- O script agora exige ser executado a partir do diretório que contém
+  `slurm-dlpno.sh` e `slurm-dlpno.csv`, garantindo que o `localDir` gravado
+  seja utilizável na execução.
+- `AGENTS.md` e `jobfile/README.md` foram atualizados com a nova regra.
+- Testado em diretório temporário, incluindo caminho com espaços; `bash -n`
+  passou.
+
+## 2026-11-10 — Compactação com tar cvzf
+
+- Alterado o passo de compactação de `slurm-dlpno.sh` para usar
+  `tar cvzf`, gerando arquivos `.tar.gz` em vez de `.tar.zst`.
+- Os nomes dos arquivos passaram a ser `job_<id>.tar.gz` e
+  `job_<id>_failed.tar.gz`.
+- `AGENTS.md` e `jobfile/README.md` foram atualizados para refletir a mudança;
+  a recomendação original do email usava zstd.
+- `bash -n` e um teste de criação/listagem de `.tar.gz` passaram.
+
+## 2026-11-10 — Nome do arquivo inclui o input
+
+- O arquivo de resultados passou a ser nomeado com o input antes do job ID:
+  `<inputname>_${SLURM_JOB_ID}.tar.gz`, onde `<inputname>` é o nome do input
+  sem a extensão `.inp`.
+- Em falha, o nome é `<inputname>_${SLURM_JOB_ID}_failed.tar.gz`.
+- Exemplo: `water1.inp` + job `12345` gera `water1_12345.tar.gz`.
+- `AGENTS.md` e `jobfile/README.md` foram atualizados.
+
+## 2026-11-10 — Remoção do laço único
+
+- Removido o `for _ in 0; do ... done` de `slurm-dlpno.sh`, que executava
+  apenas uma iteração.
+- O corpo do laço foi convertido em fluxo procedural, com a indentação
+  ajustada e sem o `cd` final de retorno ao diretório de execução.
+- Mensagens passaram de “Running jobs”/“All jobs processed” para
+  “Running job”/“Job processed”.
+- `jobfile/README.md` foi atualizado; `bash -n` passou.
+
+## 2026-11-10 — Comentários e placeholder de localDir
+
+- Adicionados comentários de seção e de etapas em `slurm-dlpno.sh` para
+  documentar o fluxo: scheduler, funções, estado do runtime, contexto Slurm,
+  caminhos, staging, seleção do input, execução do ORCA, validação e status.
+- `localDir` passou a usar o placeholder `__LOCAL_DIR__`, que é substituído
+  pelo `prepare-job.sh`.
+- Adicionada verificação para abortar caso o placeholder não tenha sido
+  substituído.
+- Criado bloco visual `PATHS - USER-EDITABLE` destacando que o usuário pode
+  alterar os caminhos do container (`ctPath`) e do scratch (`exeDir`).
+- `AGENTS.md` e `jobfile/README.md` foram atualizados; `bash -n` passou.
+
+## 2026-11-10 — README curto no topo e partition no sbatch
+
+- Adicionado um bloco curto de instruções no topo de `slurm-dlpno.sh`:
+  execução do `prepare-job.sh`, submissão com `sbatch --partition=<partition>`
+  e ajuste opcional dos caminhos de container/scratch.
+- A partition deixou de ser definida no jobfile; deve ser informada no comando
+  de submissão.
+- Atualizados `AGENTS.md` e `jobfile/README.md`.
+- `bash -n` executado com sucesso.
+
+## 2026-11-10 — Fluxo genérico de pasta no HPC
+
+- Atualizado o README curto no topo de `slurm-dlpno.sh` para o fluxo: criar
+  uma pasta no HPC, colocar inputs e scripts nela, executar
+  `./prepare-job.sh` e submeter a partir da mesma pasta.
+- Removidos caminhos específicos como `cd jobfile/slurm-dlpno` e o caminho
+  completo do jobfile nos comandos de submissão; os comandos usam `$PWD`.
+- A partition continua sendo informada no `sbatch`, não no script.
+- `AGENTS.md` e `jobfile/README.md` foram atualizados.
+- `bash -n` executado com sucesso.
+
+## 2026-11-10 — Job name e logfile padrão dlpno
+
+- `slurm-dlpno.sh` passou a usar `#SBATCH --job-name dlpno` e
+  `#SBATCH --output=dlpno_%J.stdout`.
+- `prepare-job.sh` deixou de usar o primeiro argumento como nome do job; agora
+  recebe apenas uma lista de inputs (`<input> [input ...]`).
+- O prepare passou a fixar/garantir `--job-name dlpno` e
+  `--output=dlpno_%J.stdout` a cada execução, além de atualizar CSV, `localDir`
+  e `--array`.
+- `AGENTS.md` e `jobfile/README.md` foram atualizados.
+- Testado com um e com múltiplos inputs; `bash -n` passou.
+
+## 2026-11-10 — Placeholder ARRAY na diretiva do Slurm
+
+- A cópia de trabalho passou a usar `#SBATCH --array=ARRAY` como placeholder.
+- O `prepare-job.sh` substitui `ARRAY` por `1-N`, onde `N` é o número de inputs
+  do CSV.
+- O CSV padrão pode ficar vazio até a execução do prepare.
+- `AGENTS.md` e `jobfile/README.md` foram atualizados.
+- Testado em diretório temporário; `bash -n` passou.
+
+## 2026-11-10 — Comentários e separadores no jobfile
+
+- Aumentada a verbosidade dos comentários em `slurm-dlpno.sh`.
+- Adicionados separadores e seções numeradas para inspeção: diretivas Slurm,
+  funções, estado do runtime, contexto Slurm, paths, staging, seleção do input,
+  execução do ORCA, validação e status final.
+- Documentados os blocos de cleanup, CSV, arquivamento, staging, PID/status e
+  caminhos editáveis.
+- Nenhuma mudança de comportamento.
+- `bash -n` e um teste de `prepare-job.sh` com o placeholder `ARRAY` passaram.

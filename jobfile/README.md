@@ -252,7 +252,7 @@ Portanto:
 Depois de ajustar `localDir`, o nome do job, o contêiner e os caminhos:
 
 ```bash
-sbatch jobfile/cjobs_6631.sh
+sbatch cjobs_6631.sh
 squeue -u "$USER"
 ```
 
@@ -290,13 +290,15 @@ seguintes alterações:
 
 | Item | Original | Cópia de trabalho |
 |---|---|---|
-| Partition | ausente | `#SBATCH --partition=slow` |
+| Partition | ausente | informada no `sbatch` (`--partition=<partition>`) |
+| Job name / logfile | `6631` / `cjobs_log_%x_%J.stdout` | `dlpno` / `dlpno_%J.stdout` |
+| Array | `1-1` | placeholder `ARRAY`, substituído por `1-N` no `prepare-job.sh` |
 | Sincronização do contêiner | `rclone` + lock + GID | removida; container fixo em `ctPath` |
-| Variáveis não usadas | `allocCPU`, `allocRAM`, `numjobs` | removidas; loop usa `_` |
-| `localDir` | `/home/u831869/run/slurm-dlpno` | `/home/$USER/run/slurm-dlpno` |
+| Variáveis não usadas | `allocCPU`, `allocRAM`, `numjobs` | removidas; fluxo procedural sem laço |
+| `localDir` | `/home/u831869/run/slurm-dlpno` | placeholder `__LOCAL_DIR__`, substituído por `$PWD` no `prepare-job.sh` |
 | Script copiado para o scratch | `cjobs_*.sh` | `slurm-dlpno.sh` |
 | CSV usado | `cjobs_joblist.csv` | `slurm-dlpno.csv` |
-| Finalização | `cp -r` para `localDir` | arquivo `.tar.zst` em `localDir` |
+| Finalização | `cp -r` para `localDir` | arquivo `.tar.gz` em `localDir` |
 | Limpeza | sempre remove o scratch | remove apenas após arquivar com sucesso |
 | Status do ORCA | não verificado | verifica `wait` e `ORCA TERMINATED NORMALLY` |
 | Verbosidade | echos esparsos | echos de contexto, caminhos, PID, status, arquivo e limpeza |
@@ -306,25 +308,29 @@ Detalhes:
 - Em terminação normal, o arquivo gerado é:
 
 ```text
-$localDir/job_${SLURM_JOB_ID}.tar.zst
+$localDir/<inputname>_${SLURM_JOB_ID}.tar.gz
 ```
 
 - Em terminação anormal, o arquivo gerado é:
 
 ```text
-$localDir/job_${SLURM_JOB_ID}_failed.tar.zst
+$localDir/<inputname>_${SLURM_JOB_ID}_failed.tar.gz
 ```
 
-- O comando de arquivamento segue a recomendação de `docs/andre-email.txt`:
+- `<inputname>` é o nome do input sem a extensão `.inp`; por exemplo, para
+  `water1.inp`, o arquivo é `water1_${SLURM_JOB_ID}.tar.gz`.
+
+- A cópia de trabalho usa `tar cvzf` (gzip), conforme decisão do projeto;
+  `docs/andre-email.txt` recomendava zstd:
 
 ```bash
-tar -I "zstd -T${SLURM_CPUS_PER_TASK:-2} -1" \
-    -cf "$archive" -C "$exeDir" "$basename/"
+tar cvzf "$archive" -C "$exeDir" "$basename/"
 ```
 
 - Se o `tar` falhar, o scratch é mantido para inspeção e o script termina com
   status de erro.
-- A cópia de trabalho exige `zstd` e `tar` disponíveis no ambiente.
+- A cópia de trabalho exige `tar` com suporte a gzip (`gzip`) disponível no
+  ambiente.
 - O container do ORCA não é mais sincronizado. Ele deve existir previamente em:
 
 ```text
@@ -335,52 +341,65 @@ tar -I "zstd -T${SLURM_CPUS_PER_TASK:-2} -1" \
   estiver disponível.
 - Não são necessários `rclone`, `flock`, `chown` ou `chmod` para a cópia de
   trabalho.
-- `allocCPU`, `allocRAM` e `numjobs` foram removidos; o laço único usa
-  `for _ in 0`, sem variável de índice não utilizada.
+- `allocCPU`, `allocRAM` e `numjobs` foram removidos; o laço único também foi
+  removido e o fluxo de execução passou a ser procedural.
 - A cópia de trabalho emite echos de progresso no stdout do Slurm: contexto do
   job, diretórios, cópia de arquivos, input selecionado, PID e status do ORCA,
   marcador de terminação, arquivamento e limpeza. Esses echos não vão para o
   `<basename>.out` do ORCA.
+- No arquivo versionado, `localDir` fica como `__LOCAL_DIR__`; o
+  `prepare-job.sh` substitui esse placeholder pelo diretório atual.
+- O bloco `PATHS - USER-EDITABLE` no script destaca que o usuário pode alterar
+  os caminhos do container e do scratch (`ctPath` e `exeDir`).
 - `localDir` deve conter `slurm-dlpno.sh`, `slurm-dlpno.csv` e o input.
 - A submissão da cópia de trabalho é feita com:
 
 ```bash
-sbatch jobfile/slurm-dlpno/slurm-dlpno.sh
+sbatch --partition=<partition> slurm-dlpno.sh
 ```
 
 ## Preparação de um job
 
-Use `jobfile/slurm-dlpno/prepare-job.sh` para configurar a cópia de trabalho
-sem editar manualmente o CSV e as diretivas do Slurm:
+No HPC, crie uma pasta de trabalho, coloque os inputs nela e mantenha
+`slurm-dlpno.sh`, `slurm-dlpno.csv` e `prepare-job.sh` no mesmo diretório.
+Execute a preparação a partir dessa pasta:
 
 ```bash
-jobfile/slurm-dlpno/prepare-job.sh <job-name> [input ...]
+./prepare-job.sh <input> [input ...]
 ```
 
 Exemplos:
 
 ```bash
-# Um job; usa int-1-HH.inp do diretório pai por padrão
-jobfile/slurm-dlpno/prepare-job.sh int-1-HH
+# Um input
+./prepare-job.sh int-1-HH
 
 # Vários inputs; ajusta a array para 1-N
-jobfile/slurm-dlpno/prepare-job.sh lote-01 int-1-HH.inp outro-job.inp
+./prepare-job.sh water1 water2
+```
+
+A submissão também é feita a partir dessa mesma pasta, com a partition
+desejada:
+
+```bash
+sbatch --partition=<partition> slurm-dlpno.sh
 ```
 
 O script:
 
 - grava `slurm-dlpno.csv` com uma linha por input;
-- define `#SBATCH --job-name <job-name>`;
-- define `#SBATCH --output=<job-name>_%J.stdout`;
-- define `#SBATCH --array=1-<número de inputs>`;
-- valida o nome do job e procura os inputs no diretório do script ou no
-  diretório pai (`jobfile/`).
+- substitui o placeholder `__LOCAL_DIR__` de `localDir` pelo caminho absoluto
+  do diretório atual (`$PWD`);
+- mantém `#SBATCH --job-name dlpno` e `#SBATCH --output=dlpno_%J.stdout`;
+- substitui o placeholder `#SBATCH --array=ARRAY` por `1-<número de inputs>`;
+- valida os nomes dos inputs e procura os arquivos no diretório atual ou no
+  diretório pai, se aplicável.
 
 Os arquivos originais `cjobs_6631.sh` e `cjobs_joblist.csv` não são alterados.
 
-O diretório inclui os inputs de exemplo `water1.inp` e `water2.inp`. O estado
-atual da cópia de trabalho está configurado para o lote `water-dlpno`, com
-`--array=1-2` e o CSV apontando para esses dois inputs.
+O diretório inclui os inputs de exemplo `water1.inp` e `water2.inp`. No estado
+padrão, o CSV fica vazio e a diretiva permanece `#SBATCH --array=ARRAY`; o
+`prepare-job.sh` preenche o CSV e substitui `ARRAY` pela faixa correta.
 
 O restante deste README continua descrevendo o comportamento do script
 original `cjobs_6631.sh`.

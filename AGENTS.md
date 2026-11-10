@@ -15,7 +15,7 @@ Em outras palavras:
    - executar o cálculo em `/scratch` ou `/tmp`;
    - ao final, enviar resultados preferencialmente para a nuvem via `rclone`;
    - se for inevitável gravar no `/home`, empacotar toda a pasta de resultados
-     em um único arquivo `.tar.zst` com `tar -I "zstd ..."`;
+     em um único arquivo `.tar.gz` com `tar cvzf`;
    - remover os arquivos temporários de `/scratch` ao final do job.
 3. Preservar/validar a configuração científica do cálculo DLPNO:
    - método `DLPNO-CCSD(T1)`;
@@ -35,9 +35,9 @@ Em outras palavras:
   do original (ver seção de diferenças no `jobfile/README.md`).
 - `jobfile/slurm-dlpno/slurm-dlpno.csv` — CSV de trabalho consumido por
   `slurm-dlpno.sh`.
-- `jobfile/slurm-dlpno/prepare-job.sh` — configura o CSV, o `--job-name`, o
-  `--output` e a numeração da `--array` da cópia de trabalho a partir de um
-  nome de job.
+- `jobfile/slurm-dlpno/prepare-job.sh` — configura o CSV, o `localDir` e a
+  numeração da `--array`; mantém `--job-name dlpno` e
+  `--output=dlpno_%J.stdout`.
 - `jobfile/slurm-dlpno/water1.inp` e `water2.inp` — inputs de exemplo para um
   lote de teste com duas tasks.
 - `jobfile/README.md` — documentação do fluxo, variáveis, recursos e pontos de
@@ -113,15 +113,22 @@ Em outras palavras:
   `jobfile/slurm-dlpno/slurm-dlpno.csv`. Não modificar `cjobs_6631.sh` nem
   `cjobs_joblist.csv`: eles são os originais preservados para referência e
   documentação.
-- Manter `#SBATCH --partition` na cópia de trabalho e confirmar o nome da
-  partição disponível no CloudUFSCar antes de submeter.
+- Não fixar `#SBATCH --partition` na cópia de trabalho; informar a partition
+  desejada no comando de submissão (`sbatch --partition=<partition> ...`).
 - Na finalização normal, arquivar a pasta de resultados em
-  `$localDir/job_${SLURM_JOB_ID}.tar.zst` com `tar` + `zstd`; não copiar
-  resultados soltos para `/home`. Em falha, usar o sufixo `_failed` e manter
-  o scratch se o arquivamento não funcionar.
+  `$localDir/<inputname>_${SLURM_JOB_ID}.tar.gz` com `tar cvzf`; `inputname`
+  é o nome do input sem `.inp`. Não copiar resultados soltos para `/home`.
+  Em falha, usar o sufixo `_failed` e manter o scratch se o arquivamento não
+  funcionar.
 - Não reintroduzir sincronização de containers nem `rclone` na cópia de
   trabalho. O container do ORCA deve permanecer com caminho fixo e ser
   verificado antes da execução.
-- Para configurar um job, preferir
-  `jobfile/slurm-dlpno/prepare-job.sh <job-name> [input ...]` em vez de editar
-  manualmente CSV, job-name, output e array.
+- Manter `localDir="__LOCAL_DIR__"` e `#SBATCH --array=ARRAY` no script
+  versionado; o `prepare-job.sh` substitui os placeholders pelos valores
+  calculados.
+- No HPC, criar uma pasta de trabalho, colocar nela os inputs e os scripts,
+  executar `./prepare-job.sh <input> [input ...]` a partir dessa pasta e
+  submeter com `sbatch --partition=<partition> slurm-dlpno.sh` no mesmo
+  diretório.
+- Não usar caminho completo do jobfile nos comandos de preparação/submissão;
+  operar sempre no diretório atual (`$PWD`), que também será o `localDir`.

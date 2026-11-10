@@ -5,22 +5,31 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 JOBFILE="$SCRIPT_DIR/slurm-dlpno.sh"
 CSV="$SCRIPT_DIR/slurm-dlpno.csv"
+JOB_NAME="dlpno"
+OUTPUT_PATTERN="${JOB_NAME}_%J.stdout"
+local_dir="$PWD"
+local_dir_q="$(printf '%q' "$local_dir")"
+local_dir_escaped="$(printf '%s' "$local_dir_q" | sed 's/[\\&|]/\\&/g')"
 
 usage() {
     cat <<EOF
-Uso: $(basename "$0") <job-name> [input ...]
+Uso: $(basename "$0") <input> [input ...]
 
-Preenche $CSV e atualiza as diretivas de $JOBFILE:
-  - #SBATCH --job-name
-  - #SBATCH --output
+Preenche $CSV e atualiza $JOBFILE:
+  - localDir com o diretório atual
+  - #SBATCH --job-name (fixo: ${JOB_NAME})
+  - #SBATCH --output (fixo: ${OUTPUT_PATTERN})
   - #SBATCH --array
 
-Se nenhum input for informado, usa <job-name>.inp.
+O localDir do script será atualizado para o diretório atual.
+Execute este script a partir do diretório que contém slurm-dlpno.sh e
+slurm-dlpno.csv.
+
 Os inputs devem existir no diretório deste script ou no diretório pai.
 
 Exemplos:
   $(basename "$0") int-1-HH
-  $(basename "$0") lote-01 int-1-HH.inp outro-job.inp
+  $(basename "$0") water1 water2
 EOF
 }
 
@@ -28,6 +37,10 @@ die() {
     echo "ERRO: $*" >&2
     exit 1
 }
+
+if [[ ! -f "$PWD/slurm-dlpno.sh" || ! -f "$PWD/slurm-dlpno.csv" ]]; then
+    die "execute a partir do diretório que contém slurm-dlpno.sh e slurm-dlpno.csv"
+fi
 
 case "${1:-}" in
     -h|--help)
@@ -40,16 +53,7 @@ case "${1:-}" in
         ;;
 esac
 
-job_name="${1%.inp}"
-shift
 inputs=("$@")
-
-[[ -n "$job_name" ]] || die "nome do job vazio"
-[[ "$job_name" =~ ^[A-Za-z0-9._-]+$ ]] || die "nome do job inválido: $job_name"
-
-if [[ ${#inputs[@]} -eq 0 ]]; then
-    inputs=("$job_name")
-fi
 
 normalized_inputs=()
 for raw_input in "${inputs[@]}"; do
@@ -73,6 +77,7 @@ done
 grep -q '^#SBATCH --job-name[[:space:]]' "$JOBFILE" || die "diretiva --job-name não encontrada em $JOBFILE"
 grep -q '^#SBATCH --output=' "$JOBFILE" || die "diretiva --output não encontrada em $JOBFILE"
 grep -q '^#SBATCH --array=' "$JOBFILE" || die "diretiva --array não encontrada em $JOBFILE"
+grep -q '^localDir=' "$JOBFILE" || die "variável localDir não encontrada em $JOBFILE"
 
 tmp_csv="$(mktemp "${CSV}.XXXXXX")"
 trap 'rm -f "$tmp_csv"' EXIT
@@ -90,14 +95,16 @@ trap - EXIT
 array_end="${#normalized_inputs[@]}"
 
 sed -i -E \
-    -e "s|^#SBATCH --job-name[[:space:]].*|#SBATCH --job-name ${job_name}|" \
-    -e "s|^#SBATCH --output=.*|#SBATCH --output=${job_name}_%J.stdout|" \
+    -e "s|^localDir=.*|localDir=${local_dir_escaped}|" \
+    -e "s|^#SBATCH --job-name[[:space:]].*|#SBATCH --job-name ${JOB_NAME}|" \
+    -e "s|^#SBATCH --output=.*|#SBATCH --output=${OUTPUT_PATTERN}|" \
     -e "s|^#SBATCH --array=.*|#SBATCH --array=1-${array_end}|" \
     "$JOBFILE"
 
 echo "Atualizado: $JOBFILE"
-echo "  --job-name ${job_name}"
-echo "  --output=${job_name}_%J.stdout"
+echo "  localDir ${local_dir}"
+echo "  --job-name ${JOB_NAME}"
+echo "  --output=${OUTPUT_PATTERN}"
 echo "  --array=1-${array_end}"
 echo "Atualizado: $CSV"
 sed 's/^/  /' "$CSV"
