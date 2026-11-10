@@ -342,3 +342,14 @@ arquivos.
 - O teste usa `water1.inp` e valida o fluxo de falha, o stdout renomeado e o
   archive `_failed`, quando o shell sobrevive ao OOM.
 - `AGENTS.md` foi atualizado com a referência ao kit; `bash -n` passou.
+
+## 2026-11-10 — Corrige setup do teste OOM fora do repositório
+
+- O `setup-oom-test.sh` falhava quando `oom-test/` era copiado sozinho para o
+  HPC, pois procurava `../jobfile/slurm-dlpno/`.
+- Adicionado `oom-test/fixtures/` com cópias de `slurm-dlpno.sh`,
+  `prepare-job.sh`, `slurm-dlpno.csv` e `water1.inp`.
+- O setup agora usa os arquivos de produção quando o repositório está
+  presente e cai para os fixtures quando só o diretório de teste foi copiado.
+- Testado com uma cópia isolada de `oom-test/`; o setup, o `prepare-job.sh` e
+  a geração de `work/` funcionaram.

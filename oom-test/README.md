@@ -9,8 +9,10 @@ tenta alocar 4 GiB. O cgroup do Slurm deve matar o processo.
 ## Arquivos
 
 - `fake-singularity` — executável falso que aloca memória via Python.
-- `setup-oom-test.sh` — cria `work/`, copia os scripts de produção, ajusta
-  `ctPath` para um SIF vazio e executa o `prepare-job.sh`.
+- `fixtures/` — cópia de fallback dos scripts e do input, usada quando este
+  diretório é copiado sozinho para o HPC, sem o restante do repositório.
+- `setup-oom-test.sh` — cria `work/`, copia os scripts de produção (ou os
+  fixtures), ajusta `ctPath` para um SIF vazio e executa o `prepare-job.sh`.
 - `submit-oom-test.sh` — submete o job com `--mem` baixo e o `PATH` apontando
   para o `singularity` falso.
 - `work/` — área descartável criada pelo setup; não versionada.

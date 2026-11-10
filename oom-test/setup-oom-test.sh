@@ -4,16 +4,26 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd -- "$SCRIPT_DIR/.." && pwd)"
-SOURCE_DIR="$REPO_DIR/jobfile/slurm-dlpno"
 WORK="$SCRIPT_DIR/work"
 FAKE_SRC="$SCRIPT_DIR/fake-singularity"
+
+# Prefer the production files when running inside the repository. When this
+# directory is copied alone to the HPC, use the bundled fixtures instead.
+if [[ -f "$REPO_DIR/jobfile/slurm-dlpno/slurm-dlpno.sh" ]]; then
+    SOURCE_DIR="$REPO_DIR/jobfile/slurm-dlpno"
+else
+    SOURCE_DIR="$SCRIPT_DIR/fixtures"
+fi
 
 die() {
     echo "ERRO: $*" >&2
     exit 1
 }
 
-[[ -f "$SOURCE_DIR/slurm-dlpno.sh" ]] || die "script de produção não encontrado: $SOURCE_DIR/slurm-dlpno.sh"
+echo "Fonte dos arquivos do job: $SOURCE_DIR"
+if [[ ! -f "$SOURCE_DIR/slurm-dlpno.sh" ]]; then
+    die "arquivos da cópia de trabalho não encontrados em $SOURCE_DIR"
+fi
 [[ -f "$SOURCE_DIR/prepare-job.sh" ]] || die "prepare-job.sh não encontrado: $SOURCE_DIR/prepare-job.sh"
 [[ -f "$SOURCE_DIR/slurm-dlpno.csv" ]] || die "CSV não encontrado: $SOURCE_DIR/slurm-dlpno.csv"
 [[ -f "$SOURCE_DIR/water1.inp" ]] || die "input de teste não encontrado: $SOURCE_DIR/water1.inp"
