@@ -39,6 +39,13 @@ Em outras palavras:
 - `docs/orca_manual_6_1_1.pdf` — manual do ORCA 6.1.1.
 - `docs/andre-email.txt` — comunicado da administração do Cluster UFSCar com as
   novas diretrizes de armazenamento e transferência de resultados.
+- `docs/cloudufscar-resources.txt` — snapshot de recursos do CloudUFSCar.
+- `research/orca-dlpno-resources.md` — notas sobre recursos computacionais para
+  DLPNO/NormalPNO, com referências ao manual ORCA 6.1.1.
+- `research/sample-dlpno-resource-analysis.md` — análise de tempo, memória,
+  disco e paralelismo dos dois cálculos de referência em `sample-dlpno/`.
+- `research/cloudufscar-resources.md` — capacidade dos nodes, premissa de um
+  scratch por node e execução em node único.
 
 ## Situação atual
 
@@ -52,6 +59,31 @@ Em outras palavras:
 - Os exemplos de saída indicam cálculo concluído com sucesso; servem de
   referência para comparar a configuração e os tempos de execução após o ajuste.
 
+## Ambiente Python
+
+- Se precisar executar Python, usar o ambiente default do mamba (atualmente
+  `base`, em `/home/attilio/opt/miniforge3`), por exemplo:
+  `mamba run -n base python ...`.
+- Não criar `.venv` nem ambientes conda/mamba específicos sem necessidade.
+
+## Recursos para DLPNO com NormalPNO (manual ORCA 6.1.1)
+
+- Para DLPNO-CCSD(T), `NormalPNO` é o ajuste default e usa
+  `TCutPairs=1e-4`, `TCutDO=1e-2`, `TCutPNO=3.33e-7` e `TCutMKN=1e-3`,
+  com tratamento MP2 semicanônico dos pares (mais barato que `TightPNO`).
+- `%maxcore` é por processo, em MB. O manual recomenda pelo menos 8 GB por
+  core para coupled cluster e `maxcore * nprocs <= 0.75 * RAM disponível`.
+  Com 4 processos e 80 GB de `--mem`, o limite coerente é
+  `maxcore <= 15000 MB` (15 GB/core).
+- `%pal nprocs` deve coincidir com `--ntasks` do Slurm. O manual indica que
+  coupled cluster escala bem até pelo menos 8 processos; 16 pode valer a pena.
+- DLPNO exige base auxiliar de correlação (ex.: `def2-tzvpp/C`); `RIJCOSX`
+  também requer `def2/J`.
+- DLPNO pode demandar bastante I/O de disco; executar em scratch local (não
+  NFS), manter um diretório por job e removê-lo ao final. Em nó único,
+  `%mdci StorageType Shared` tenta manter integrais em memória compartilhada,
+  com fallback para disco.
+
 ## Diretrizes para futuras alterações
 
 - Não alterar parâmetros científicos do cálculo sem justificativa e sem
@@ -63,3 +95,6 @@ Em outras palavras:
   `OMP_NUM_THREADS`) permanecem consistentes.
 - Não deixar resultados apenas no Cluster; seguir a opção de transferência
   definida pela administração.
+- O Slurm do CloudUFSCar tem um scratch por node e o job será single-node;
+  todos os ranks compartilham o mesmo scratch. Manter `--nodes=1`, usar um
+  diretório exclusivo por job e não assumir scratch privado por rank.
