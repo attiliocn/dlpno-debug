@@ -61,6 +61,9 @@ Em outras palavras:
   disco e paralelismo dos dois cálculos de referência em `sample-dlpno/`.
 - `research/cloudufscar-resources.md` — capacidade dos nodes, premissa de um
   scratch por node e execução em node único.
+- `tests/test0_rafa/README.md` — diagnóstico do teste `test0_rafa` (falha por
+  OOM do job `1152088` em `int-1-HH.inp`), análise de memória RAM vs. disco
+  (`/scratch`) e dimensionamento para 4, 8, 16, 20 e 40 cores no CloudUFSCar.
 
 ## Situação atual
 

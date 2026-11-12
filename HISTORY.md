@@ -402,3 +402,24 @@ arquivos.
   aceitando `--warning=no-file-changed`.
 - `jobfile/slurm-dlpno/slurm-dlpno.sh`, `jobfile/README.md` e
   `oom-test/fixtures/slurm-dlpno.sh` atualizados; `bash -n` passou.
+
+## 2026-11-12 — Diagnóstico da falha do job 1152088 (`tests/test0_rafa`)
+
+- Analisados `int-1-HH_1152088.stdout`, `int-1-HH.out`, `stderr.log` e
+  `int-1-HH.inp` em `tests/test0_rafa/int-1-HH-FAILED/`.
+- Confirmado que o cálculo falhou por OOM no cgroup do Slurm (`--mem=80000`)
+  após 4h 13min no nó `c7`, durante o `IBatch 8 (of 15)` da etapa
+  `Pair Pair Term precalculation` do módulo MDCI (`rank 3` morto com `SIGKILL`),
+  pois `%maxcore 20000` com `nprocs 4` consumiu 100% da alocação sem a margem de
+  25% recomendada pelo manual do ORCA.
+- Confirmado que o fluxo de recuperação de `slurm-dlpno.sh` funcionou como
+  esperado: detectou a ausência de `ORCA TERMINATED NORMALLY` mesmo com status 0
+  do container, removeu 75 GB de temporários (`.tmp`, `.bas0`–`.bas5`,
+  `.densities`), gerou `int-1-HH_1152088_failed.tar.gz` com 28 MB e limpou o
+  diretório do job em `/scratch`.
+- Registrado em `tests/test0_rafa/README.md` o diagnóstico completo, incluindo a
+  distinção entre os 47,7 GB de disco da etapa `VABPAO` e o uso de RAM por lote
+  (`IBatch`), as vantagens de `%maxcore > 8000` e a tabela de dimensionamento
+  para 40, 20, 16, 8 e 4 cores nos cenários de node completo e meio node.
+- Atualizados `jobfile/README.md` e `AGENTS.md` com referência para
+  `tests/test0_rafa/README.md`.

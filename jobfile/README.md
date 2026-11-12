@@ -223,7 +223,9 @@ Portanto:
   `--mem=80000` solicitado;
 - o manual do ORCA recomenda `MaxCore × nprocs ≤ 0,75 × RAM disponível`, o que
   sugeriria `%maxcore 15000` para 80 GB, ou aumentar `--mem` para cerca de
-  107 GB;
+  107–110 GB (no teste real registrado em `tests/test0_rafa/README.md`, a
+  execução de `int-1-HH.inp` com `4 × 20000 MB` e `--mem=80000` sofreu OOM kill
+  no `IBatch 8 (of 15)` do módulo MDCI);
 - `MKL_NUM_THREADS=4` e `OMP_NUM_THREADS=4` com 4 processos MPI podem causar
   oversubscription; validar com o ambiente do cluster.
 
@@ -450,5 +452,8 @@ original `cjobs_6631.sh`.
   ORCA para DLPNO/NormalPNO.
 - `research/sample-dlpno-resource-analysis.md` — tempos e memória observados
   nos outputs de referência.
+- `tests/test0_rafa/README.md` — diagnóstico da falha por OOM do cálculo
+  `int-1-HH` (job `1152088`), distinção entre disco (`VABPAO`) e RAM e tabela
+  de dimensionamento para 4, 8, 16, 20 e 40 cores.
 - `docs/andre-email.txt` — diretriz de transferência de resultados e limpeza do
   scratch.
