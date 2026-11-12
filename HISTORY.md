@@ -423,3 +423,11 @@ arquivos.
   para 40, 20, 16, 8 e 4 cores nos cenários de node completo e meio node.
 - Atualizados `jobfile/README.md` e `AGENTS.md` com referência para
   `tests/test0_rafa/README.md`.
+
+## 2026-11-12 — Criação do README.md principal do repositório
+
+- Criado `README.md` na raiz do repositório, em inglês e de forma sucinta,
+  resumindo o propósito do projeto (diagnóstico do cálculo DLPNO-CCSD(T1),
+  dimensionamento de recursos e fluxo de submissão Slurm com `slurm-dlpno.sh`),
+  os principais achados do diagnóstico de OOM, o guia rápido de preparação e
+  submissão e a estrutura do repositório.
