@@ -457,3 +457,14 @@ arquivos.
 
 - Removido o diretório `oom-test/` do repositório.
 - Removidas as referências a `oom-test/` em `README.md` e `AGENTS.md`.
+
+## 2026-11-13 — Atualização do `README.md` com o diagnóstico do `test1_after-diagnose`
+
+- Atualizado `README.md` substituindo as recomendações anteriores baseadas na
+  regra de 75% pelos achados mais relevantes do `test1_after-diagnose`
+  (`Job 1152147`): falha no `IBatch 1 (of 10)` mesmo com `+29,7%` de surplus,
+  explicação pelo aumento de `nprocs × %maxcore` e nova tabela de perfis
+  priorizando `4 cores + %maxcore 16000 + --mem=128000` (+100% surplus) para
+  throughput em cluster multiusuário.
+- Adicionada referência para `tests/test1_after-diagnose/README.md` na seção
+  `Repository Structure`.
