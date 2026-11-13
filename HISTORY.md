@@ -468,3 +468,11 @@ arquivos.
   throughput em cluster multiusuário.
 - Adicionada referência para `tests/test1_after-diagnose/README.md` na seção
   `Repository Structure`.
+
+## 2026-11-13 — Inclusão de introdução e baseline do manual no `README.md`
+
+- Adicionada a seção `Problem & Manual Baseline` antes de
+  `Key Diagnostic Findings` no `README.md`, resumindo o problema do cálculo
+  `int-1-HH`, as expectativas do manual do ORCA 6.1.1 (`%maxcore` por
+  processo, piso de 8 GB/core, regra de 75% da RAM, paralelismo e `/scratch`)
+  e a capacidade padrão dos nós regulares do CloudUFSCar.

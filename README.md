@@ -12,6 +12,19 @@ This repository diagnoses failing **ORCA 6.1.1 `DLPNO-CCSD(T1)`** calculations o
 
 ---
 
+## Problem & Manual Baseline
+
+The target job (`int-1-HH.inp`) is a 51-atom `DLPNO-CCSD(T1) TightPNO` calculation (292 total electrons, 214 correlated / 107 internal MOs, 1,377 `def2-TZVPP` basis functions, 3,324 `def2-TZVPP/C` auxiliary functions) running in ORCA 6.1.1 under CloudUFSCar's node-local `/scratch` workflow. During the `MDCI` `Pair Pair Term precalculation` stage, jobs were killed by the Slurm cgroup OOM killer even after adding standard memory headroom.
+
+**ORCA 6.1.1 Manual Expectations (§1.7.5, §2.1.3, §2.5):**
+- **`%maxcore` is per MPI process (MB):** It bounds only the dominant working arrays; actual `MDCI` memory can exceed `%maxcore`. The manual recommends **≥ 8,000 MB/core** for coupled cluster and $\text{nprocs} \times \text{\%maxcore} \le 0.75 \times \text{available RAM}$.
+- **Parallelism & Scratch:** `%pal nprocs` must match Slurm `--ntasks` on a single node (`--nodes=1`), scaling well around 8 processes (up to 16) while sharing node-local `/scratch` for large 3-index integral files.
+- **CloudUFSCar Regular Nodes (`c1`–`c18`):** **40 CPUs** and **386,700 MB RAM** (~9,667 MB/CPU).
+
+As shown below, the manual's 25% headroom rule proved insufficient for `int-1-HH` at `nprocs=8` with `%maxcore 16000`.
+
+---
+
 ## Key Diagnostic Findings
 
 - **Why a `+30%` Slurm RAM surplus still failed (`test1_after-diagnose`, `Job 1152147`):**
