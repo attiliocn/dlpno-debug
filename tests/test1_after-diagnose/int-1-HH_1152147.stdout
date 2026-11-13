@@ -1,0 +1,166 @@
+LOG: ============================================================
+LOG: Starting slurm-dlpno.sh
+LOG: Start time: 2026-11-12 11:58:45 -03
+LOG: Host: c23
+LOG: User: u831869
+LOG: Job ID: 1152147
+LOG: Array task ID: 1
+LOG: Partition: normal
+LOG: Nodes: 1
+LOG: Tasks: 8
+LOG: CPUs per task: unset
+LOG: Memory per node: 166000 MB
+LOG: ============================================================
+LOG: localDir: /home/u831869/run/TESTS-DLPNO/test1_after-diagnose
+LOG: exeDir: /scratch/u831869/jobs/1152147
+LOG: ORCA container: /scratch/u831869/containers/orca-611_2025-12-16_19-01-10_orca611.sif
+LOG: Checking ORCA container.
+LOG: ORCA container found.
+LOG: Creating execution directory: /scratch/u831869/jobs/1152147
+LOG: Copying script and CSV to execution directory.
+LOG: Script and CSV copied.
+LOG: Running job
+LOG: Reading job list for array task ID 1.
+LOG: Selected input: int-1-HH.inp
+LOG: Creating job directory: /scratch/u831869/jobs/1152147/int-1-HH
+LOG: Copying input to job directory.
+LOG: Input copied.
+LOG: Current job: int-1-HH.inp
+LOG: Job basename: int-1-HH
+LOG: Running at: /scratch/u831869/jobs/1152147/int-1-HH
+LOG: Hostname: c23
+LOG: Singularity container path: /scratch/u831869/containers/orca-611_2025-12-16_19-01-10_orca611.sif
+LOG: Slurm output renamed: /home/u831869/run/TESTS-DLPNO/test1_after-diagnose/int-1-HH_1152147.stdout
+LOG: Changing to job directory: /scratch/u831869/jobs/1152147/int-1-HH
+LOG: Setting thread and stack limits.
+LOG: MKL_NUM_THREADS=4 OMP_NUM_THREADS=4 OMP_STACKSIZE=4G
+LOG: Launching ORCA container.
+LOG: ORCA stdout: /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.out
+LOG: ORCA stderr: /scratch/u831869/jobs/1152147/int-1-HH/stderr.log
+LOG: ORCA process started with PID 386407.
+LOG: ORCA process finished with status 0.
+LOG: Checking ORCA normal termination marker.
+LOG: ORCA did not terminate normally (status=1).
+LOG: Job processed.
+LOG: End time: 2026-11-12 13:39:25 -03
+LOG: Job did not complete normally.
+LOG: Cleanup started (job_success=0, job_status=1).
+LOG: Removing ORCA temporary files before archiving (74G):
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PNOJK.proc5.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PNOJK.proc4.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PNOJK.proc3.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PNOJK.proc1.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PNOJK.proc6.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PNOJK.proc2.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PNOJK.proc7.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PNOJK.proc0.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VABPAO.tmp.7
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VABPAO.tmp.6
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VABPAO.tmp.5
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VABPAO.tmp.4
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VABPAO.tmp.3
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VABPAO.tmp.2
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VABPAO.tmp.1
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VABPAO.tmp.0
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.IJV.tmp.0
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.OVLPAO.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.P2V_red.tmp.7
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.P2V_red.tmp.6
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.P2V_red.tmp.5
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.P2V_red.tmp.4
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.P2V_red.tmp.3
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.P2V_red.tmp.2
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.P2V_red.tmp.1
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.P2V_red.tmp.0
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PAO_V12.tmp.7
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PAO_V12.tmp.6
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PAO_V12.tmp.5
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PAO_V12.tmp.4
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PAO_V12.tmp.3
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PAO_V12.tmp.2
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PAO_V12.tmp.1
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PAO_V12.tmp.0
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.IAVPAO.tmp.0
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.F_OPAO.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.IAVOSV.tmp.0
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VAUXC_SYM.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.CPAO.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.FAO.fc.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.FAO.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.mdciinp.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.K0.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.en.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.densities
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VM1EXT.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SQRTVEXT.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VEXT.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.P0.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.cpscfdata.tmp.0
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.propint.tmp.0
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SC0.gridx3.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SINV.gridx3_factor.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.gridx3.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SC0.gridx2.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SINV.gridx2_factor.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.gridx2.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SC0.gridx1.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SINV.gridx1_factor.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.gridx1.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.shark_grid.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.grid.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SM12.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SP12.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.E.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VCDC.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SQRTVC.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VAUXC.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VCDJ.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SQRTVJ.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.VAUXJ.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.V.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.T.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.H.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.S.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.K.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.PDAT.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.EIJ.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SHARK.KPRSCR.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.int.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.SHARKINP.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.citations.tmp
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.bas5
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.bas4
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.bas3
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.bas2
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.bas1
+LOG:   /scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.bas0
+LOG: Archiving job directory: /scratch/u831869/jobs/1152147/int-1-HH
+LOG: Creating output archive: /home/u831869/run/TESTS-DLPNO/test1_after-diagnose/int-1-HH_1152147_failed.tar.gz
+int-1-HH/
+int-1-HH/int-1-HH.loc
+int-1-HH/int-1-HH.loc.inp
+int-1-HH/int-1-HH.hostnames
+int-1-HH/int-1-HH.densitiesinfo
+int-1-HH/int-1-HH.gbw
+int-1-HH/int-1-HH.property.txt
+int-1-HH/stderr.log
+int-1-HH/int-1-HH.out
+int-1-HH/int-1-HH.inp
+LOG: Successfully archived outputs: /home/u831869/run/TESTS-DLPNO/test1_after-diagnose/int-1-HH_1152147_failed.tar.gz (28M)
+LOG: Removing scratch directory: /scratch/u831869/jobs/1152147
+removed '/scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.loc'
+removed '/scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.loc.inp'
+removed '/scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.hostnames'
+removed '/scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.densitiesinfo'
+removed '/scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.gbw'
+removed '/scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.property.txt'
+removed '/scratch/u831869/jobs/1152147/int-1-HH/stderr.log'
+removed '/scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.out'
+removed '/scratch/u831869/jobs/1152147/int-1-HH/int-1-HH.inp'
+removed directory '/scratch/u831869/jobs/1152147/int-1-HH'
+removed '/scratch/u831869/jobs/1152147/slurm-dlpno.csv'
+removed '/scratch/u831869/jobs/1152147/slurm-dlpno.sh'
+removed directory '/scratch/u831869/jobs/1152147'
+LOG: Scratch directory removed.
+LOG: Cleanup finished.
+[2026-11-12T13:39:35.621] error: Detected 2 oom_kill events in StepId=1152147.batch. Some of the step tasks have been OOM Killed.
