@@ -54,6 +54,5 @@ This repository diagnoses failing **ORCA 6.1.1 `DLPNO-CCSD(T1)`** calculations o
 - [`tests/test0_rafa/`](tests/test0_rafa/) — Post-mortem analysis and resource sizing for the failed `int-1-HH` calculation ([`tests/test0_rafa/README.md`](tests/test0_rafa/README.md)).
 - [`research/`](research/) — Technical notes on ORCA 6.1.1 DLPNO resource requirements, CloudUFSCar node specs, and benchmark analysis of reference outputs.
 - [`sample-dlpno/`](sample-dlpno/) — Reference ORCA `DLPNO-CCSD(T1)` outputs that completed normally.
-- [`oom-test/`](oom-test/) — Self-contained test harness using a mock Singularity binary to simulate Slurm OOM kills and verify cleanup/archiving behavior.
 - [`docs/`](docs/) — Cluster storage guidelines (`andre-email.txt`), node snapshot (`cloudufscar-resources.txt`), and ORCA 6.1.1 manual.
 - [`HISTORY.md`](HISTORY.md) — Chronological log of repository changes and design decisions.

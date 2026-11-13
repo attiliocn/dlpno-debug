@@ -452,3 +452,8 @@ arquivos.
   `--mem=128000` (100% de surplus, ~33% da RAM de um nó regular) e remover/zerar
   para `1` as variáveis `MKL_NUM_THREADS`/`OMP_NUM_THREADS`/`OMP_STACKSIZE` no
   `slurm-dlpno.sh`.
+
+## 2026-11-13 — Remoção do `oom-test/` e de suas referências
+
+- Removido o diretório `oom-test/` do repositório.
+- Removidas as referências a `oom-test/` em `README.md` e `AGENTS.md`.

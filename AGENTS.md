@@ -45,8 +45,6 @@ Em outras palavras:
 - `jobfile/README.md` — documentação do fluxo, variáveis, recursos e pontos de
   atenção do script original `cjobs_6631.sh`. A cópia de trabalho está em
   `jobfile/slurm-dlpno/`.
-- `oom-test/` — kit para simular falha por OOM no fluxo do `slurm-dlpno.sh`,
-  com `singularity` falso e limite de memória baixo no Slurm.
 - `jobfile/int-1-HH.inp` — entrada ORCA do cálculo DLPNO em questão.
 - `sample-dlpno/` — dois exemplos de saída ORCA que terminaram normalmente
   (`bis_int_tbpButTrans_3.out` e `ts-exchg-2_f3_17.out`), úteis como referência
