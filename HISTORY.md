@@ -431,3 +431,24 @@ arquivos.
   dimensionamento de recursos e fluxo de submissão Slurm com `slurm-dlpno.sh`),
   os principais achados do diagnóstico de OOM, o guia rápido de preparação e
   submissão e a estrutura do repositório.
+
+
+## 2026-11-13 — Diagnóstico do teste `test1_after-diagnose` (`dlpno-test2`, job `1152147`)
+
+- Analisados `int-1-HH_1152147.stdout`, `int-1-HH.inp`, `slurm-dlpno.sh`,
+  `int-1-HH/int-1-HH.out` e `int-1-HH/stderr.log` em
+  `tests/test1_after-diagnose/`.
+- Confirmado OOM no cgroup do Slurm (`--mem=166000`, 2 eventos `oom_kill`,
+  rank 3 morto com `SIGKILL`) logo no início de `IBatch 1 (of 10)` da etapa
+  `Pair Pair Term precalculation` do módulo MDCI.
+- Identificado o motivo de o surplus de `+29,7%` (`38.000 MB`) não ter
+  bastado: ao passar de 4 para 8 processos (`%maxcore 16000`), `nprocs ×
+  %maxcore` subiu de `80.000 MB` para `128.000 MB`, reduzindo os lotes de 15
+  para 10 (~50% mais orbitais por lote), enquanto a RAM total por rank quase
+  não mudou (`20.000` para `20.750 MB/rank`), deixando apenas `4.750 MB/rank`
+  para memória fora do `%maxcore`.
+- Criado `tests/test1_after-diagnose/README.md` documentando o diagnóstico e a
+  decisão para o ambiente multiusuário: adotar `nprocs 4` + `%maxcore 16000` +
+  `--mem=128000` (100% de surplus, ~33% da RAM de um nó regular) e remover/zerar
+  para `1` as variáveis `MKL_NUM_THREADS`/`OMP_NUM_THREADS`/`OMP_STACKSIZE` no
+  `slurm-dlpno.sh`.
