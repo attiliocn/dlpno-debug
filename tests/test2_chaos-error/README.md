@@ -51,3 +51,5 @@ Para tornar esse tipo de falha impossível:
 3. **Proteger o `clean_job` contra `basename` vazio ou absoluto:**
    - Exigir `[[ -n "$basename" && "$basename" != */* && -d "$exeDir/$basename" ]]` antes de remover temporários ou chamar `tar`.
    - Evitar a barra final ou validar explicitamente o caminho relativo passado ao `tar -C "$exeDir" "$basename"`.
+
+> **Recomendação operacional:** **SEMPRE usar o template atualizado em [`jobfile/slurm-dlpno/`](../../jobfile/slurm-dlpno/)** (onde essas travas e o dimensionamento atual já estão aplicados) e executar `./prepare-job.sh <job-name>` na nova pasta antes do `sbatch`. Nunca copiar um `slurm-dlpno.sh` já preparado de uma execução anterior.

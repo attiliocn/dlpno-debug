@@ -44,7 +44,9 @@ As shown below, the manual's 25% headroom rule proved insufficient for `int-1-HH
 
 ## Quick Start (Submitting a Job)
 
-1. Copy the contents of [`jobfile/slurm-dlpno/`](jobfile/slurm-dlpno/) (`slurm-dlpno.sh`, `slurm-dlpno.csv`, and `prepare-job.sh`) into your working directory on the cluster alongside your `.inp` files.
+> **Important:** **ALWAYS copy from the updated template in [`jobfile/slurm-dlpno/`](jobfile/slurm-dlpno/)** for every new calculation directory. **Never** reuse an already-prepared `slurm-dlpno.sh` from a previous run folder (its hardcoded `localDir` will point to the old folder; see [`tests/test2_chaos-error/README.md`](tests/test2_chaos-error/README.md)).
+
+1. Copy the fresh template files from [`jobfile/slurm-dlpno/`](jobfile/slurm-dlpno/) (`slurm-dlpno.sh`, `slurm-dlpno.csv`, and `prepare-job.sh`) into your new working directory on the cluster alongside your `.inp` files.
 2. Run the preparation script from that directory to auto-detect all `*.inp` files (in natural sort order) and configure `slurm-dlpno.csv`, `localDir`, `--job-name`, and `--array`:
    ```bash
    ./prepare-job.sh <job-name>
