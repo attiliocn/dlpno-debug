@@ -502,3 +502,15 @@ arquivos.
     `OMP_STACKSIZE=4G`.
 - Atualizado `jobfile/int-1-HH.inp`: `%maxcore` reduzido de `20000` para `16000`
   (mantendo `%pal nprocs 4` e todos os parâmetros científicos inalterados).
+
+## 2026-11-14 — Travas contra `localDir` inválido e `basename` vazio em `slurm-dlpno.sh`
+
+- Adicionadas travas em `jobfile/slurm-dlpno/slurm-dlpno.sh`:
+  - Fail fast no bloco `5.1` se `$localDir`, `$localDir/slurm-dlpno.csv` ou
+    `$localDir/slurm-dlpno.sh` não existirem, ou se `$localDir` divergir de
+    `$SLURM_SUBMIT_DIR`.
+  - Checagem explícita de falha nos `cp` de staging, `mkdir`, `cd` e na
+    validação de `$job` / `$basename` não vazios e sem `/`.
+  - Proteção no `clean_job` exigindo `basename` não vazio, sem `/` e
+    `jobDir == "$exeDir/$basename"`, além de remover a barra final em
+    `tar -C "$exeDir" "$basename"`.

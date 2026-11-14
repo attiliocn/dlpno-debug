@@ -101,8 +101,9 @@ function clean_job() {
         return
     fi
 
-    # Archive only when a job output directory exists.
-    if [[ -n "$jobDir" && -d "$jobDir" ]]; then
+    # Archive only when a valid per-job output directory exists.
+    # Guard against an empty or slash-containing basename expanding to "/".
+    if [[ -n "$basename" && "$basename" != */* && "$jobDir" == "$exeDir/$basename" && -d "$jobDir" ]]; then
         local job_id="${SLURM_JOB_ID:-unknown}"
         local archive
 
@@ -147,7 +148,7 @@ function clean_job() {
         # or vanished while being read), 2 = fatal error. Only 0 and 1 are
         # acceptable here; --warning=no-file-changed just silences the
         # corresponding message, it does not change the exit status.
-        tar cvzf "$archive" --warning=no-file-changed -C "$exeDir" "$basename/"
+        tar cvzf "$archive" --warning=no-file-changed -C "$exeDir" "$basename"
         tar_status=$?
         if [[ "$tar_status" -le 1 ]]; then
             echo "LOG: Successfully archived outputs: $archive ($(du -h "$archive" | cut -f1))"
@@ -234,9 +235,19 @@ localDir="__LOCAL_DIR__"
 exeDir="/scratch/$USER/jobs/$SLURM_JOB_ID"
 ctPath="/scratch/$USER/containers/orca-611_2025-12-16_19-01-10_orca611.sif"
 
-# 5.1 Fail fast if prepare-job.sh was not run.
+# 5.1 Fail fast if prepare-job.sh was not run (or script was copied from another dir).
 if [[ "$localDir" == "__LOCAL_DIR__" ]]; then
     echo "LOG: localDir placeholder was not replaced; run prepare-job.sh first." >&2
+    exit 1
+fi
+
+if [[ ! -d "$localDir" || ! -f "$localDir/slurm-dlpno.csv" || ! -f "$localDir/slurm-dlpno.sh" ]]; then
+    echo "LOG: Missing working directory or job files in localDir ($localDir); run ./prepare-job.sh first." >&2
+    exit 1
+fi
+
+if [[ -n "${SLURM_SUBMIT_DIR:-}" && "$(realpath -m "$localDir")" != "$(realpath -m "$SLURM_SUBMIT_DIR")" ]]; then
+    echo "LOG: localDir ($localDir) does not match submit directory ($SLURM_SUBMIT_DIR); run ./prepare-job.sh in the submit directory." >&2
     exit 1
 fi
 
@@ -258,15 +269,18 @@ echo "LOG: ORCA container found."
 # ============================================================================
 # Copy the runner and CSV so execution does not depend on /home.
 echo "LOG: Creating execution directory: $exeDir"
-mkdir -p "$exeDir"
+mkdir -p "$exeDir" || { echo "LOG: ERROR: failed to create $exeDir." >&2; exit 1; }
 
 # Keep the runner and job list beside the input in scratch.
 echo "LOG: Copying script and CSV to execution directory."
-cp "$localDir"/slurm-dlpno.sh "$localDir"/slurm-dlpno.csv "$exeDir"
+if ! cp "$localDir"/slurm-dlpno.sh "$localDir"/slurm-dlpno.csv "$exeDir"; then
+    echo "LOG: ERROR: failed to copy script/CSV from $localDir to $exeDir." >&2
+    exit 1
+fi
 echo "LOG: Script and CSV copied."
 
 echo "LOG: Running job"
-cd "$exeDir"
+cd "$exeDir" || { echo "LOG: ERROR: failed to enter $exeDir." >&2; exit 1; }
 
 # ============================================================================
 # 7. SELECT INPUT AND CREATE JOB DIRECTORY
@@ -277,14 +291,22 @@ job=$(get_csv_element slurm-dlpno.csv "$SLURM_ARRAY_TASK_ID" 2)
 echo "LOG: Selected input: $job"
 
 # Strip the .inp extension to build the per-job directory and archive name.
-basename="$(echo $job | rev | cut -f 2- -d '.' | rev)"
+basename="$(echo "$job" | rev | cut -f 2- -d '.' | rev)"
+if [[ -z "$job" || -z "$basename" || "$basename" == */* || ! -f "$localDir/$job" ]]; then
+    echo "LOG: ERROR: invalid or missing input '$job' in $localDir (array task ${SLURM_ARRAY_TASK_ID:-unset})." >&2
+    exit 1
+fi
+
 jobDir="$exeDir"/"$basename"
 echo "LOG: Creating job directory: $jobDir"
-mkdir "$jobDir"
+mkdir "$jobDir" || { echo "LOG: ERROR: failed to create $jobDir." >&2; exit 1; }
 
 # Stage the selected input in the job directory.
 echo "LOG: Copying input to job directory."
-cp "$localDir"/"$job" "$jobDir"
+if ! cp "$localDir"/"$job" "$jobDir"; then
+    echo "LOG: ERROR: failed to copy $job from $localDir to $jobDir." >&2
+    exit 1
+fi
 echo "LOG: Input copied."
 
 echo LOG: Current job: "$job"
