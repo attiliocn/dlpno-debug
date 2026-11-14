@@ -1,0 +1,94 @@
+LOG: ============================================================
+LOG: Starting slurm-dlpno.sh
+LOG: Start time: 2026-11-12 14:22:46 -03
+LOG: Host: c16
+LOG: User: u831869
+LOG: Job ID: 1152215
+LOG: Array task ID: 1
+LOG: Partition: normal
+LOG: Nodes: 1
+LOG: Tasks: 8
+LOG: CPUs per task: unset
+LOG: Memory per node: 166000 MB
+LOG: ============================================================
+LOG: localDir: /home/u831869/run/slurm-dlpno/testes-dlpno/slurm-dlpno
+LOG: exeDir: /scratch/u831869/jobs/1152215
+LOG: ORCA container: /scratch/u831869/containers/orca-611_2025-12-16_19-01-10_orca611.sif
+LOG: Checking ORCA container.
+LOG: ORCA container found.
+LOG: Creating execution directory: /scratch/u831869/jobs/1152215
+LOG: Copying script and CSV to execution directory.
+cp: cannot stat '/home/u831869/run/slurm-dlpno/testes-dlpno/slurm-dlpno/slurm-dlpno.sh': No such file or directory
+cp: cannot stat '/home/u831869/run/slurm-dlpno/testes-dlpno/slurm-dlpno/slurm-dlpno.csv': No such file or directory
+LOG: Script and CSV copied.
+LOG: Running job
+LOG: Reading job list for array task ID 1.
+sed: can't read slurm-dlpno.csv: No such file or directory
+LOG: Selected input: 
+LOG: Creating job directory: /scratch/u831869/jobs/1152215/
+mkdir: cannot create directory ‘/scratch/u831869/jobs/1152215/’: File exists
+LOG: Copying input to job directory.
+cp: cannot stat '/home/u831869/run/slurm-dlpno/testes-dlpno/slurm-dlpno/': No such file or directory
+LOG: Input copied.
+LOG: Current job: 
+LOG: Job basename: 
+LOG: Running at: /scratch/u831869/jobs/1152215/
+LOG: Hostname: c16
+LOG: Singularity container path: /scratch/u831869/containers/orca-611_2025-12-16_19-01-10_orca611.sif
+mv: cannot move '/home/u831869/run/TESTS-DLPNO/test2_after-diagnose/slurm-1152215_1.stdout' to '/home/u831869/run/slurm-dlpno/testes-dlpno/slurm-dlpno/_1152215.stdout': No such file or directory
+LOG: WARNING: could not rename Slurm output: /home/u831869/run/TESTS-DLPNO/test2_after-diagnose/slurm-1152215_1.stdout
+LOG: Changing to job directory: /scratch/u831869/jobs/1152215/
+LOG: Setting thread and stack limits.
+LOG: MKL_NUM_THREADS=1 OMP_NUM_THREADS=1 OMP_STACKSIZE=4G
+LOG: Launching ORCA container.
+LOG: ORCA stdout: /scratch/u831869/jobs/1152215//.out
+LOG: ORCA stderr: /scratch/u831869/jobs/1152215//stderr.log
+LOG: ORCA process started with PID 2733228.
+LOG: ORCA process finished with status 1.
+LOG: Checking ORCA normal termination marker.
+LOG: ORCA did not terminate normally (status=1).
+LOG: Job processed.
+LOG: End time: 2026-11-12 14:22:46 -03
+LOG: Job did not complete normally.
+LOG: Cleanup started (job_success=0, job_status=1).
+LOG: No ORCA temporary files to remove.
+LOG: Archiving job directory: /scratch/u831869/jobs/1152215/
+LOG: Creating output archive: /home/u831869/run/slurm-dlpno/testes-dlpno/slurm-dlpno/_1152215_failed.tar.gz
+tar: Removing leading `/' from member names
+/
+/xcatpost/
+tar: /xcatpost/mypostscript: Cannot open: Permission denied
+/xcatpost/xcatserver
+/xcatpost/xcatpostinit1.service.yast2
+/xcatpost/xcatpostinit1.service
+/xcatpost/xcatpostinit1.netboot
+/xcatpost/xcatpostinit1.install
+/xcatpost/xcatpostinit1
+/xcatpost/xcatpostinit.service
+/xcatpost/xcatpostinit
+/xcatpost/xcatlib.sh
+/xcatpost/xcatinstallpost
+/xcatpost/xcatflowrequest
+...TRUNCATED HERE
+/etc/dnf/protect
+/etc/dnf/plugins/
+/etc/dnf/plugins/needs-restarting.d/
+/etc/dnf/plugins/needs-restarting.d/nvidia-driver-cuda.conf
+/etc/dnf/plugins/needs-restarting.d/nvidia-driver.conf
+/etc/dnf/plugins/debuginfo-install.conf
+/etc/dnf/plugins/copr.d/
+/etc/dnf/plugins/copr.conf
+/etc/dnf/modules.defaults.d/
+/etc/dnf/aliases.d/
+/etc/dnf/modules.d/
+/etc/dnf/modules.d/libselinux-python.module
+/etc/dnf/modules.d/container-tools.module
+/etc/dnf/modules.d/perl-libwww-perl.module
+/etc/dnf/modules.d/perl-IO-Socket-SSL.module
+/etc/dnf/modules.d/perl.module
+/etc/dnf/modules.d/nvidia-driver.module
+/etc/dnf/modules.d/llvm-toolset.module
+/etc/dnf/modules.d/python36.module
+/etc/fstab
+tar: Exiting with failure status due to previous errors
+LOG: ERROR: failed to create archive (tar status 2); keeping scratch: /scratch/u831869/jobs/1152215

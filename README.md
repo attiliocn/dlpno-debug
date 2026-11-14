@@ -68,6 +68,7 @@ As shown below, the manual's 25% headroom rule proved insufficient for `int-1-HH
 - [`jobfile/`](jobfile/) — Legacy reference script (`cjobs_6631.sh`), target input (`int-1-HH.inp`), and detailed workflow documentation ([`jobfile/README.md`](jobfile/README.md)).
 - [`tests/test0_rafa/`](tests/test0_rafa/) — Post-mortem analysis of the initial OOM failure (`Job 1152088`, [`tests/test0_rafa/README.md`](tests/test0_rafa/README.md)).
 - [`tests/test1_after-diagnose/`](tests/test1_after-diagnose/) — Diagnosis of the `+30%` surplus OOM failure (`Job 1152147`, `dlpno-test2`) and 4-core multi-user sizing ([`tests/test1_after-diagnose/README.md`](tests/test1_after-diagnose/README.md)).
+- [`tests/test2_chaos-error/`](tests/test2_chaos-error/) — Post-mortem of the catastrophic `Job 1152215` failure where an invalid `localDir` left `basename` empty and caused `clean_job` to `tar` `/` ([`tests/test2_chaos-error/README.md`](tests/test2_chaos-error/README.md)).
 - [`research/`](research/) — Technical notes on ORCA 6.1.1 DLPNO resource requirements, CloudUFSCar node specs, and benchmark analysis of reference outputs.
 - [`sample-dlpno/`](sample-dlpno/) — Reference ORCA `DLPNO-CCSD(T1)` outputs that completed normally.
 - [`docs/`](docs/) — Cluster storage guidelines (`andre-email.txt`), node snapshot (`cloudufscar-resources.txt`), and ORCA 6.1.1 manual.
