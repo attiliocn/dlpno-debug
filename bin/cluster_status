@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cluster_status() {
     local divider
     divider=$(printf '%.0s-' {1..96})
@@ -50,3 +52,7 @@ cluster_status() {
 
     echo "${divider}"
 }
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    cluster_status "$@"
+fi
