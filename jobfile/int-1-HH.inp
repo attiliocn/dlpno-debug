@@ -1,6 +1,6 @@
 ! DLPNO-CCSD(T1) TightPNO TightSCF RIJCOSX def2-tzvpp def2-tzvpp/C def2/J
 
-%maxcore 20000
+%maxcore 16000
 
 %pal
  nprocs 4

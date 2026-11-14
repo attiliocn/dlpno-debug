@@ -22,10 +22,16 @@
 #SBATCH --job-name dlpno
 #SBATCH --output=slurm-%A_%a.stdout
 
-# Resource request: one node, four MPI ranks, 80 GB, up to 720 hours.
+# Resource request: 4 MPI ranks, 128 GB, up to 720 hours.
+# Sizing recommendation (100% surplus above nprocs * %maxcore):
+#   - Default (multi-user throughput): %pal nprocs 4, %maxcore 16000 (64 GB base)
+#     -> --ntasks=4, --mem=128000 (100% surplus = 16 GB/rank headroom).
+#   - 8-core alternative (half-node): %pal nprocs 8, %maxcore 10000-12000
+#     -> --ntasks=8, --mem=160000-190000 (~98-100% surplus).
+#   - Avoid <50% surplus at high %maxcore (e.g. 8x16000=128 GB in 166 GB OOM'd).
 #SBATCH --nodes=1
 #SBATCH --ntasks=4
-#SBATCH --mem=80000
+#SBATCH --mem=128000
 #SBATCH --time=720:00:00
 
 # Slurm array and early cleanup signal.
@@ -303,15 +309,14 @@ fi
 # ============================================================================
 # 8. RUN ORCA IN THE CONTAINER
 # ============================================================================
-# Enter the job directory and set thread/stack limits.
+# Enter the job directory and set single-thread limits (ORCA uses MPI + SINGLE_THREADED OpenBLAS).
 echo "LOG: Changing to job directory: $jobDir"
 cd "$jobDir"
 echo "LOG: Setting thread and stack limits."
-export MKL_NUM_THREADS=4
-export OMP_NUM_THREADS=4
-export OMP_STACKSIZE=4G
+export MKL_NUM_THREADS=1
+export OMP_NUM_THREADS=1
 ulimit -s unlimited
-echo "LOG: MKL_NUM_THREADS=$MKL_NUM_THREADS OMP_NUM_THREADS=$OMP_NUM_THREADS OMP_STACKSIZE=$OMP_STACKSIZE"
+echo "LOG: MKL_NUM_THREADS=$MKL_NUM_THREADS OMP_NUM_THREADS=$OMP_NUM_THREADS"
 
 # Run one ORCA job in the container; capture stdout and stderr separately.
 # The process is backgrounded so its PID and exit status can be tracked.

@@ -476,3 +476,29 @@ arquivos.
   `int-1-HH`, as expectativas do manual do ORCA 6.1.1 (`%maxcore` por
   processo, piso de 8 GB/core, regra de 75% da RAM, paralelismo e `/scratch`)
   e a capacidade padrão dos nós regulares do CloudUFSCar.
+
+## 2026-11-14 — Diagnóstico do erro catastrófico em `tests/test2_chaos-error` (`Job 1152215`)
+
+- Inspecionados `tests/test2_chaos-error/jobfile-chaos-error/slurm-dlpno.sh` e
+  o início/fim do stdout do job `1152215` (sem ler o arquivo inteiro de 100 MB).
+- Identificada a cadeia de falha: `localDir` apontava para um diretório
+  inexistente (`/home/u831869/run/slurm-dlpno/testes-dlpno/slurm-dlpno`); por
+  falta de validação de existência/cópia, `job` e `basename` ficaram vazios e
+  o `clean_job` executou `tar cvzf ... -C "$exeDir" "$basename/"` → `tar ... "/"`,
+  tentando compactar o filesystem raiz `/` do nó `c16` por ~5 horas até
+  falhar com `tar status 2` (`Permission denied`).
+- Criado `tests/test2_chaos-error/README.md` documentando o incidente de forma
+  independente do log bruto e listando as proteções necessárias no
+  `slurm-dlpno.sh`; atualizada a seção `Repository Structure` do `README.md`.
+
+## 2026-11-14 — Atualização de recursos e threads em `jobfile/slurm-dlpno/slurm-dlpno.sh` e `jobfile/int-1-HH.inp`
+
+- Atualizado `jobfile/slurm-dlpno/slurm-dlpno.sh`:
+  - `#SBATCH --mem=128000` com `#SBATCH --ntasks=4` (100% de surplus sobre
+    `4 × 16.000 = 64.000 MB`, para melhor throughput em cluster multiusuário).
+  - Adicionados comentários com a recomendação de surplus de 100% (4 cores com
+    `%maxcore 16000` e alternativa de 8 cores com `%maxcore 10000`–`12000`).
+  - Definidos `MKL_NUM_THREADS=1` e `OMP_NUM_THREADS=1` e removido
+    `OMP_STACKSIZE=4G`.
+- Atualizado `jobfile/int-1-HH.inp`: `%maxcore` reduzido de `20000` para `16000`
+  (mantendo `%pal nprocs 4` e todos os parâmetros científicos inalterados).
