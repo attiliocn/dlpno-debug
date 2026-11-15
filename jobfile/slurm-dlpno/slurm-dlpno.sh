@@ -25,13 +25,13 @@
 # Resource request: 4 MPI ranks, 128 GB, up to 720 hours.
 # Sizing recommendation (100% surplus above nprocs * %maxcore):
 #   - Default (multi-user throughput): %pal nprocs 4, %maxcore 16000 (64 GB base)
-#     -> --ntasks=4, --mem=128000 (100% surplus = 16 GB/rank headroom).
+#     -> --ntasks=4, --mem=128G (100% surplus = 16 GB/rank headroom).
 #   - 8-core alternative (half-node): %pal nprocs 8, %maxcore 10000-12000
-#     -> --ntasks=8, --mem=160000-190000 (~98-100% surplus).
+#     -> --ntasks=8, --mem=160G-190G (~98-100% surplus).
 #   - Avoid <50% surplus at high %maxcore (e.g. 8x16000=128 GB in 166 GB OOM'd).
 #SBATCH --nodes=1
 #SBATCH --ntasks=4
-#SBATCH --mem=128000
+#SBATCH --mem=128G
 #SBATCH --time=720:00:00
 
 # Slurm array and early cleanup signal.
