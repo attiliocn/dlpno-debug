@@ -514,3 +514,18 @@ arquivos.
   - Proteção no `clean_job` exigindo `basename` não vazio, sem `/` e
     `jobDir == "$exeDir/$basename"`, além de remover a barra final em
     `tar -C "$exeDir" "$basename"`.
+
+## 2026-11-15 — Análise de RAM e documentação do teste `tests/testA1` (`Job 90036`)
+
+- Analisados os logs e saídas do teste bem-sucedido em `tests/testA1`
+  (`int-1-HH.inp`, `Job 90036` no nó `mcurie01`, partição `cpu`,
+  `4h 39m 31s`, `****ORCA TERMINATED NORMALLY****`, `stderr.log` vazio).
+- Confrontado o uso de RAM reportado pelo ORCA (`MDCI`: `16.602,0 MB/rank`,
+  `+602,0 MB` acima de `%maxcore 16000`, totalizando `66.408,0 MB` nos 4 ranks)
+  com o orçamento do Slurm (`--ntasks=4`, `--mem=128000`, `+100%` de surplus),
+  confirmando `15.398 MB/rank` de folga acima do pico rastreado pelo ORCA.
+- Criado `tests/testA1/README.md` com o registro completo da análise.
+- Incorporado `tests/testA1/data/usage-ram.txt` (`sacct -j 90036`): `MaxRSS`
+  real de `68.790.108 K` (`67.177,84 MiB` / `65,60 GiB`, `52,48%` dos `125G`
+  alocados), indicando surplus mínimo observado de `+4,97%` sobre
+  `4 × 16.000 MiB` (`+20%` a `+33%` com margem prática).
