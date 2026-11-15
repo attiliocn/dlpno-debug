@@ -1,0 +1,6 @@
+[attilio.chiavegatti@mcurie00 run]$ sacct -j 90036 --format=JobID,MaxRSS,ReqMem,AllocCPUS,State
+JobID            MaxRSS     ReqMem  AllocCPUS      State
+------------ ---------- ---------- ---------- ----------
+90036_1                       125G          4  COMPLETED
+90036_1.bat+  68790108K                     4  COMPLETED
+90036_1.ext+       932K                     4  COMPLETED

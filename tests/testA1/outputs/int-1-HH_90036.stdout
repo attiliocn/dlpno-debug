@@ -1,0 +1,76 @@
+LOG: ============================================================
+LOG: Starting slurm-dlpno.sh
+LOG: Start time: 2026-11-14 16:31:14 -03
+LOG: Host: mcurie01
+LOG: User: attilio.chiavegatti
+LOG: Job ID: 90036
+LOG: Array task ID: 1
+LOG: Partition: cpu
+LOG: Nodes: 1
+LOG: Tasks: 4
+LOG: CPUs per task: unset
+LOG: Memory per node: 128000 MB
+LOG: ============================================================
+LOG: localDir: /home/attilio.chiavegatti/run/dlpno_testA1
+LOG: exeDir: /scratch/attilio.chiavegatti/jobs/90036
+LOG: ORCA container: /scratch/attilio.chiavegatti/containers/orca-611_2025-12-16_19-01-10_orca611.sif
+LOG: Checking ORCA container.
+LOG: ORCA container found.
+LOG: Creating execution directory: /scratch/attilio.chiavegatti/jobs/90036
+LOG: Copying script and CSV to execution directory.
+LOG: Script and CSV copied.
+LOG: Running job
+LOG: Reading job list for array task ID 1.
+LOG: Selected input: int-1-HH.inp
+LOG: Creating job directory: /scratch/attilio.chiavegatti/jobs/90036/int-1-HH
+LOG: Copying input to job directory.
+LOG: Input copied.
+LOG: Current job: int-1-HH.inp
+LOG: Job basename: int-1-HH
+LOG: Running at: /scratch/attilio.chiavegatti/jobs/90036/int-1-HH
+LOG: Hostname: mcurie01
+LOG: Singularity container path: /scratch/attilio.chiavegatti/containers/orca-611_2025-12-16_19-01-10_orca611.sif
+LOG: Slurm output renamed: /home/attilio.chiavegatti/run/dlpno_testA1/int-1-HH_90036.stdout
+LOG: Changing to job directory: /scratch/attilio.chiavegatti/jobs/90036/int-1-HH
+LOG: Setting thread and stack limits.
+LOG: MKL_NUM_THREADS=1 OMP_NUM_THREADS=1
+LOG: Launching ORCA container.
+LOG: ORCA stdout: /scratch/attilio.chiavegatti/jobs/90036/int-1-HH/int-1-HH.out
+LOG: ORCA stderr: /scratch/attilio.chiavegatti/jobs/90036/int-1-HH/stderr.log
+LOG: ORCA process started with PID 2429779.
+LOG: ORCA process finished with status 0.
+LOG: Checking ORCA normal termination marker.
+LOG: ORCA terminated normally.
+LOG: Job processed.
+LOG: End time: 2026-11-14 21:10:46 -03
+LOG: Job completed successfully.
+LOG: Cleanup started (job_success=1, job_status=0).
+LOG: Archiving job directory: /scratch/attilio.chiavegatti/jobs/90036/int-1-HH
+LOG: Creating output archive: /home/attilio.chiavegatti/run/dlpno_testA1/int-1-HH_90036.tar.gz
+int-1-HH/
+int-1-HH/int-1-HH.inp
+int-1-HH/int-1-HH.out
+int-1-HH/stderr.log
+int-1-HH/int-1-HH.property.txt
+int-1-HH/int-1-HH.gbw
+int-1-HH/int-1-HH.bibtex
+int-1-HH/int-1-HH.densities
+int-1-HH/int-1-HH.densitiesinfo
+int-1-HH/int-1-HH.loc
+LOG: Successfully archived outputs: /home/attilio.chiavegatti/run/dlpno_testA1/int-1-HH_90036.tar.gz (57M)
+LOG: Removing scratch directory: /scratch/attilio.chiavegatti/jobs/90036
+removed '/scratch/attilio.chiavegatti/jobs/90036/slurm-dlpno.sh'
+removed '/scratch/attilio.chiavegatti/jobs/90036/slurm-dlpno.csv'
+removed '/scratch/attilio.chiavegatti/jobs/90036/int-1-HH/int-1-HH.inp'
+removed '/scratch/attilio.chiavegatti/jobs/90036/int-1-HH/int-1-HH.out'
+removed '/scratch/attilio.chiavegatti/jobs/90036/int-1-HH/stderr.log'
+removed '/scratch/attilio.chiavegatti/jobs/90036/int-1-HH/int-1-HH.property.txt'
+removed '/scratch/attilio.chiavegatti/jobs/90036/int-1-HH/int-1-HH.gbw'
+removed '/scratch/attilio.chiavegatti/jobs/90036/int-1-HH/int-1-HH.bibtex'
+removed '/scratch/attilio.chiavegatti/jobs/90036/int-1-HH/int-1-HH.densities'
+removed '/scratch/attilio.chiavegatti/jobs/90036/int-1-HH/int-1-HH.densitiesinfo'
+removed '/scratch/attilio.chiavegatti/jobs/90036/int-1-HH/int-1-HH.loc'
+removed directory '/scratch/attilio.chiavegatti/jobs/90036/int-1-HH'
+removed directory '/scratch/attilio.chiavegatti/jobs/90036'
+LOG: Scratch directory removed.
+LOG: Cleanup finished.
