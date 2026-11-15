@@ -538,3 +538,23 @@ arquivos.
   surplus (`--ntasks=8`, `--mem=192000`), a justificativa para `def2-qzvpp/C`
   (e por que não usá-la com base orbital `def2-tzvpp`) e os riscos de OOM/tempo
   em comparação com `testA1` e `test1_after-diagnose`.
+
+## 2026-11-15 — Atualização do `README.md` principal
+
+- Removida a tabela de perfis recomendados para o CloudUFSCar.
+- Substituída `Key Diagnostic Findings` por `Problems Found & Solutions (From Tests)`
+  (lista sucinta com `test0_rafa`, `test1_after-diagnose`, `test2_chaos-error` e
+  `testA1`) e `Current Recommendations` (`%maxcore` mínimo 8 GB / recomendado
+  16 GB, surplus 100% / 50% em teste, 4 a no máximo 16 cores).
+- Incluídos `tests/testA1/` e `tests/testA2/` em `Repository Structure`.
+- Consolidadas as referências ao CloudUFSCar em uma seção dedicada `## HPC`
+  com as especificações dos nós (`c1`–`c9`, `c12`–`c18`: 40 CPUs,
+  `386.700 MB` RAM, `/scratch` local por nó).
+
+## 2026-11-15 — Notação `--mem=128G` em `jobfile/slurm-dlpno/slurm-dlpno.sh`
+
+- Atualizado `#SBATCH --mem=128000` para `#SBATCH --mem=128G` (e os comentários
+  de dimensionamento para `128G` / `160G-190G`) em
+  `jobfile/slurm-dlpno/slurm-dlpno.sh`, garantindo 128 GiB exatos no Slurm.
+- Documentada no `README.md` a convenção de unidades do Slurm (`--mem` sem
+  sufixo em MiB vs. sufixo `G` para GiB exatos).
