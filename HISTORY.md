@@ -529,3 +529,12 @@ arquivos.
   real de `68.790.108 K` (`67.177,84 MiB` / `65,60 GiB`, `52,48%` dos `125G`
   alocados), indicando surplus mínimo observado de `+4,97%` sobre
   `4 × 16.000 MiB` (`+20%` a `+33%` com margem prática).
+
+## 2026-11-15 — Planejamento e revisão do input do teste `tests/testA2`
+
+- Revisado `tests/testA2/inputs/int-1-HH.inp` (`TightPNO`, `def2-qzvpp`,
+  `def2-qzvpp/C`, `def2/J`, `%maxcore 16000`, `%pal nprocs 8`).
+- Documentado em `tests/testA2/README.md` o objetivo de testar `+50%` de
+  surplus (`--ntasks=8`, `--mem=192000`), a justificativa para `def2-qzvpp/C`
+  (e por que não usá-la com base orbital `def2-tzvpp`) e os riscos de OOM/tempo
+  em comparação com `testA1` e `test1_after-diagnose`.
