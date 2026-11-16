@@ -10,31 +10,31 @@
 # 4. Submit from the same folder, choosing the partition at submission:
 #      sbatch --partition=<partition> slurm-dlpno.sh
 # 5. Adjust the container and scratch paths in the PATHS block below if needed.
+#
+# NOTE: Tested on CloudUFSCar and Curie. On a different HPC cluster, verify the
+# Singularity container and scratch paths in section 5 (PATHS - USER-EDITABLE).
+
 # ============================================================================
 
 # ============================================================================
 # 1. SLURM DIRECTIVES
 # ============================================================================
-# dlpno is the template default; prepare-job.sh sets the job name.
+# Placeholders below are replaced by ./prepare-job.sh <job-name>; this template
+# is intentionally invalid for sbatch until prepare-job.sh is executed.
 # Slurm output starts as slurm-%A_%a.stdout; after the input is selected it is
 # renamed to <input>_<jobid>.stdout. Partition is chosen at submission time.
-# ARRAY is a placeholder replaced by prepare-job.sh.
-#SBATCH --job-name dlpno
-#SBATCH --output=slurm-%A_%a.stdout
 
-# Resource request: 4 MPI ranks, 128 GB, up to 720 hours.
-# Sizing recommendation (100% surplus above nprocs * %maxcore):
-#   - Default (multi-user throughput): %pal nprocs 4, %maxcore 16000 (64 GB base)
-#     -> --ntasks=4, --mem=128G (100% surplus = 16 GB/rank headroom).
-#   - 8-core alternative (half-node): %pal nprocs 8, %maxcore 10000-12000
-#     -> --ntasks=8, --mem=160G-190G (~98-100% surplus).
-#   - Avoid <50% surplus at high %maxcore (e.g. 8x16000=128 GB in 166 GB OOM'd).
+# Resource placeholders (populated by prepare-job.sh from *.inp):
+#   - --ntasks: read from %pal nprocs / ! palN (must match across all *.inp)
+#   - --mem: 100% surplus above nprocs * %maxcore (minimum 75% recommended)
+#   - --time: 168:00:00 (7 days default)
+
+#SBATCH --job-name PLACEHOLDER_JOB_NAME
+#SBATCH --output=PLACEHOLDER_OUTPUT
 #SBATCH --nodes=1
-#SBATCH --ntasks=4
-#SBATCH --mem=128G
-#SBATCH --time=720:00:00
-
-# Slurm array and early cleanup signal.
+#SBATCH --ntasks=PLACEHOLDER_NTASKS
+#SBATCH --mem=PLACEHOLDER_MEM
+#SBATCH --time=PLACEHOLDER_TIME
 #SBATCH --array=ARRAY
 #SBATCH --signal=B:TERM@60
 
