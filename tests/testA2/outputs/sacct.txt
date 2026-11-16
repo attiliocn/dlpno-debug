@@ -1,0 +1,5 @@
+JobID            MaxRSS     ReqMem  AllocCPUS      State
+------------ ---------- ---------- ---------- ----------
+91772_1                    187.50G          8     FAILED
+91772_1.bat+ 201289608K                     8     FAILED
+91772_1.ext+       844K                     8  COMPLETED
