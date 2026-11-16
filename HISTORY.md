@@ -558,3 +558,52 @@ arquivos.
   `jobfile/slurm-dlpno/slurm-dlpno.sh`, garantindo 128 GiB exatos no Slurm.
 - Documentada no `README.md` a convenção de unidades do Slurm (`--mem` sem
   sufixo em MiB vs. sufixo `G` para GiB exatos).
+
+## 2026-11-16 — Diagnóstico da falha por OOM em `tests/testA2` (`Job 91772`)
+
+- Analisados `tests/testA2/outputs/sacct.txt`, `int-1-HH_91772.stdout`,
+  `stderr.log` e `int-1-HH.out`.
+- Confirmado OOM no cgroup (`ReqMem = 187.50G` / `192.000 MiB`, `MaxRSS`
+  atingiu `201.289.608 K` = `196.571,88 MiB` / `191,96 GiB`, `+53,57%` acima
+  da base de `128.000 MiB`, `SIGKILL` no rank 4) após ~25h 42min, já na etapa
+  `DLPNO BASED TRIPLES CORRECTION` (`49.811` triplos, antes de concluir `T0`).
+- Atualizado `tests/testA2/README.md` com o diagnóstico completo, limites de
+  surplus (`+75%` a `+100%` ou `%maxcore 12000` em `192G`) e notas de restart
+  (apenas SCF via `.gbw`, sem retomada do MDCI).
+- Atualizado `README.md` global com o resultado do `testA2` e a tabela
+  comparativa de custo normalizada em 4 cores (`testA1` vs. `testA2`).
+- Consolidada a seção `Final Recommendations` no `README.md` (surplus mínimo
+  de `+75%`, `+100%` fortemente recomendado; `4` cores para `NormalPNO` e
+  `8`–`16` cores para `TightPNO`) e incluída a tabela de dimensionamento para
+  `4`/`8`/`16` cores com `%maxcore` de `8 GB` e `16 GB` em `+75%` e `+100%`.
+
+## 2026-11-16 — Automação de `--time`, `--ntasks` e `--mem` em `prepare-job.sh`
+
+- Atualizado `jobfile/slurm-dlpno/prepare-job.sh` para:
+  - definir `#SBATCH --time=168:00:00` (7 dias padrão);
+  - ler `n_cores` (`%pal nprocs` ou `! palN`) e `%maxcore` de todos os `*.inp`,
+    abortando com erro se algum input divergir no número de cores;
+  - calcular `#SBATCH --mem` com `100%` de surplus (`2 × n_cores × %maxcore`
+    em `G`).
+- Validado com `bash -n` e testado em `/tmp` com `water1.inp`/`water2.inp`
+  (`4` cores → `160G`), `testA2/inputs/int-1-HH.inp` (`8` cores → `256G`) e
+  lote misto (`4` vs `8` cores → falha esperada).
+
+## 2026-11-16 — Placeholders obrigatórios em `jobfile/slurm-dlpno/slurm-dlpno.sh`
+
+- Substituídos os valores default das diretivas gerenciadas por
+  `prepare-job.sh` em `jobfile/slurm-dlpno/slurm-dlpno.sh` por placeholders
+  (`PLACEHOLDER_JOB_NAME`, `PLACEHOLDER_OUTPUT`, `PLACEHOLDER_NTASKS`,
+  `PLACEHOLDER_MEM`, `PLACEHOLDER_TIME`), mantendo `localDir="__LOCAL_DIR__"`
+  e `--array=ARRAY`, impedindo submissão acidental sem rodar `./prepare-job.sh`.
+- Validado com `bash -n` e testado com `prepare-job.sh` em `/tmp`.
+
+## 2026-11-16 — Política de `%maxcore` em `prepare-job.sh`
+
+- Atualizado `jobfile/slurm-dlpno/prepare-job.sh` para:
+  - se `%maxcore == 8000`: manter `8000` e avisar que `16000` (16 GB) é recomendado;
+  - se `%maxcore > 16000`: manter o valor do input e avisar que `16000` é recomendado;
+  - se `%maxcore < 16000` (e != `8000`): ajustar para `16000` no `.inp` e avisar.
+- Adicionada em `Final Recommendations` do `README.md` a regra de
+  concorrência por nó (`/scratch` `1.1–5.5 TB`): `NormalPNO` limitado por RAM
+  e `TightPNO` + `def2-QZVPP` no máximo `1` job por vez por nó.
