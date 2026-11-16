@@ -607,3 +607,5 @@ arquivos.
 - Adicionada em `Final Recommendations` do `README.md` a regra de
   concorrência por nó (`/scratch` `1.1–5.5 TB`): `NormalPNO` limitado por RAM
   e `TightPNO` + `def2-QZVPP` no máximo `1` job por vez por nó.
+- Adicionados comandos `curl` e `wget` na seção `Quick Start` do `README.md`
+  para baixar os templates direto no HPC.

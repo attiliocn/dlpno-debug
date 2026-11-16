@@ -84,12 +84,28 @@ Comparing [`testA1`](tests/testA1/README.md) (`4` cores, completed) and [`testA2
 
 > **Important:** **ALWAYS copy from the updated template in [`jobfile/slurm-dlpno/`](jobfile/slurm-dlpno/)** for every new calculation directory. **Never** reuse an already-prepared `slurm-dlpno.sh` from a previous run folder (its hardcoded `localDir` will point to the old folder; see [`tests/test2_chaos-error/README.md`](tests/test2_chaos-error/README.md)).
 
-1. Copy the fresh template files from [`jobfile/slurm-dlpno/`](jobfile/slurm-dlpno/) (`slurm-dlpno.sh`, `slurm-dlpno.csv`, and `prepare-job.sh`) into your new working directory on the cluster alongside your `.inp` files.
-2. Run the preparation script from that directory to auto-detect all `*.inp` files (in natural sort order) and configure `slurm-dlpno.csv`, `localDir`, `--job-name`, and `--array`:
+1. **Create and enter a dedicated working directory on the HPC** and place your `*.inp` files there (all inputs in the same folder must use the same core count):
+   ```bash
+   mkdir -p ~/run/<my-job-dir> && cd ~/run/<my-job-dir>
+   ```
+2. **Download or copy the fresh template files** (`slurm-dlpno.sh`, `slurm-dlpno.csv`, and `prepare-job.sh`) into this working directory. Either copy them from [`jobfile/slurm-dlpno/`](jobfile/slurm-dlpno/) or **choose one of the two options below**:
+
+   **Option A — Using `curl`:**
+   ```bash
+   BASE="https://raw.githubusercontent.com/attiliocn/dlpno-debug/main/jobfile/slurm-dlpno"
+   curl -fsSLO "$BASE/slurm-dlpno.sh" -fsSLO "$BASE/slurm-dlpno.csv" -fsSLO "$BASE/prepare-job.sh" && chmod +x prepare-job.sh
+   ```
+
+   **Option B — Using `wget`:**
+   ```bash
+   BASE="https://raw.githubusercontent.com/attiliocn/dlpno-debug/main/jobfile/slurm-dlpno"
+   wget -q "$BASE/slurm-dlpno.sh" "$BASE/slurm-dlpno.csv" "$BASE/prepare-job.sh" && chmod +x prepare-job.sh
+   ```
+3. **Prepare the job** from inside the working directory (replace `<job-name>` with a short identifier, e.g., `dlpno_run1`). This scans all `*.inp` files in natural sort order and populates `slurm-dlpno.csv`, `localDir`, `--job-name`, `--output`, `--ntasks`, `--mem` (100% surplus), `--time=168:00:00` (7 days), and `--array`:
    ```bash
    ./prepare-job.sh <job-name>
    ```
-3. Submit the job specifying the target Slurm partition:
+4. **Submit the job** from the same directory, replacing `<partition>` with your cluster's Slurm partition (e.g., `normal`, `slow`, or `cpu`):
    ```bash
    sbatch --partition=<partition> slurm-dlpno.sh
    ```
